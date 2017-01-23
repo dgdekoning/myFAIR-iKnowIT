@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block style %}
+<link href="{% static 'css/output.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+|| <a href="/">&lt;&lt;back</a>
+|| <a href="/logout">Logout</a> ||
+<div id="title">
+    <h1>{{hist.name}}</h1>
+</div>
+<div id="wrapper">
+    <div id="input" style="overflow-x:auto;">
+        <h1>Input Files</h1>
+        <p>
+        <table id="input-files">
+            <th>File</th>
+            <th></th>
+            {% for input in inputs %}
+                {% if input in inputs %}
+                <tr>
+                    <td>{{input.name}}</td>
+                    <td>
+                        <a href="{{server}}{{input.download_url}}">
+                            <button class="button">Download</button>
+                        </a>
+                    </td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+        </p>
+    </div>
+    <div id="analysis" style="overflow-x:auto;">
+        <h1>Analysis Details</h1>
+        <p>
+            History Id: {{hist.id}}<br />
+            State: {{hist.state}}<br />
+            Date created: {{hist.update_time}}<br /><br />
+        </p>
+    </div>
+    <div id="output" style="overflow-x:auto;">
+        <h1>Output Files</h1>
+        <p>
+        <table id="output-files">
+            <th>File</th>
+            <th></th>
+            {% if outputs %}
+            {% for output in outputs %}
+                {% if output not in inputs %}
+                    {% if not inputs %}
+                    {% else %}
+                        {% if output.visible %}
+                            <tr>
+                                <td>{{output.name}}.{{output.extension}}</td>
+                                <td>
+                                    <a href="{{server}}{{output.download_url}}">
+                                        <button class="button" style="vertical-align:middle"><span>Download</span></button>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            {% else %}
+                <tr><td>No output files.</td></tr>
+            {% endif %}
+        </table>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+    || <a href="/">Home</a>
+    || <a href="/eudat">Upload Files</a>
+    || <a href="/logout">Logout</a> ||
+    <br />
+</p>
+<div id="login">
+    <form action="modify" method="post" name="delete">
+        <p>Type in the group name you want to delete</p>
+        <input type="text" name="delete" id="delete">
+    </form>
+    <br />
+    <button id="index_buttons" onclick="document.delete.submit()">Delete group</button>
+    <br />
+    <br />
+</div>
+{% endblock %}

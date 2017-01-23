@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+        <a class="navbar-brand" href="http://www.erasmusmc.nl/" target="_blank">
+            <img src="{% static 'img/logo-erasmus.jpg' %}" alt="" class="img-thumbnail" width="154" height="136">
+            <!--<img src="{% static 'img/logo-dtl.png' %}" alt="" class="img-thumbnail" width="154" height="136" align="right">-->
+        </a>
+    </div>
+    <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
+        <a class="navbar-brand" href="https://dtl-fair.atlassian.net/wiki/display/FDP/FAIR+Data+Point+Software+Specification" target="_blank">
+            <img src="{% static 'img/logo-dtl.png' %}" alt="" class="img-thumbnail" width="154" height="136">
+        </a>
+    </div>
+</div>
+<!-- Page Content -->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="page-header text-center">
+                <h1>myFAIR Analysis @ EMC</h1>
+            </div>
+            <p>
+                <span style="float:left">
+                Galaxy Server: {{server}} <br />
+                Galaxy-User: {{user}} <br />
+                </span>
+                <span style="float:right">
+                Storage Location: {{storage}} <br />
+                Storage-User: <span id="user">{{b2user}}</span> <br />
+                </span>
+            </p>
+            <br />
+            <p>
+                <br />
+                <br />
+                || <a href="/">Home</a>
+                || <a href="/eudat">Upload Files</a>
+                || <a href="/delete">Delete from graph</a>
+                || <a href="/logout">Logout</a> ||
+                <br />
+            </p>
+            <div class="panel panel-info" id="step1">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Step 1 Select query:</h3>
+                </div>
+                <div class="panel-body">
+                    <select size="5" class="form-control" id="template">
+                    </select>
+                </div>
+            </div>
+            <div class="panel panel-info" id="step2">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Step 2 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> By which value?</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row" id="sampleid">
+                        <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">Sample</button></div>
+                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
+                        <div class="col-md-4">
+                            <input class="form-control" type="text" id="sampleidOption" list="sampleidDatalist" placeholder="e.g. HG002_NA24385_son" autocomplete="off">
+                            <datalist id="sampleidDatalist"></datalist>
+                        </div>
+                    </div>
+                    <div class="row" id="group">
+                        <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">group</button></div>
+                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
+                        <div class="col-md-4">
+                            <input class="form-control" type="text" id="groupOption" list="groupDatalist" placeholder="e.g. {{ user }}" autocomplete="off">
+                            <datalist id="groupDatalist"></datalist>
+                        </div>
+                    </div>
+                    <div class="row" id="sex">
+                        <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">Sex</button></div>
+                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
+                        <div class="col-md-4">
+                            <input class="form-control" type="text" id="sexOption" list="sexDatalist" placeholder="e.g. male" autocomplete="off">
+                            <datalist id="sexDatalist"></datalist>
+                        </div>
+                    </div>
+                    <div class="row" id="disease">
+                        <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">Disease</button></div>
+                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
+                        <div class="col-md-4">
+                            <input class="form-control" type="text" id="diseaseOption" list="diseaseDatalist" placeholder="e.g. Parkinsons Disease" autocomplete="off">
+                            <datalist id="diseaseDatalist"></datalist>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer panel-info">
+                    <div class="row">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-red btn-lg btn-block has-spinner" id="process" data-btn-text="Loading...">
+                                Process <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="col-md-4"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-danger fade in" id="errorPanel">
+            </div>
+            <div class="alert alert-info fade in" id="infoPanel">
+            </div>
+
+            <div class="panel panel-info" id="step3">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Step 3 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Result:</h3>
+                </div>
+                <div class="panel-body">
+                    <p>Select a workflow from the dropdown menu</p>
+                    <select id="workflow" name="workflow" class="select-workflow">
+                        <optgroup label="Workflows">
+                            <option value="0">Use Galaxy</option>
+                        {% for workflow in workflows %}
+                            <option value="{{ workflow.id }}">{{ workflow.name }}</option>
+                        {% endfor %}
+                        </optgroup>
+                    </select>
+                    <input type="checkbox" value="true" name="onlydata" id="onlydata" />Send datafile only
+                    <div class="alert alert-info fade in" id="noResultPanel">
+                        <p><strong> No result :</strong> Sorry no result available for these query params</p>
+                    </div>
+                    <table class="table table-striped" id="results_table">
+                    </table>
+                    <div id="galaxy"></div>
+                    <div id="loading" style="display:none" align="center">
+                        <img id="loadingImage" src="{% static 'img/loading.gif' %}" width="375" height="187.5">
+                        <br />
+                        <p>Please wait...This can take several minutes.</p>
+                    </div>
+                    <div id="finished" style="display:none" align="center">
+                        <a href="{{ server }}" target="_blank">
+                            <img id="checkImage" src="{% static 'img/check.png' %}" width="125" height="125">
+                        </a>
+                    </div>
+                    <div id="error" style="display:none" align="center">
+                        <img id="errorImage" src="{% static 'img/error.png' %}" width="125" height="125">
+                        <br />
+                        <p id="errormessage">
+                            Oops...wait a few seconds or reload the page to try again.
+                        </p>
+                    </div>
+                    <div id="plot" style="display: none; width: 500px; height: 500px; text-align: center; float:left">
+                        <canvas id="myChart" style="width: 280" height="280"></canvas>
+                        <button id="index_buttons" onclick="clearcanvas()">Clear Canvas</button>
+                    </div>
+                    <div id="plotb" style="display: none; width: 500px; height: 500px; text-align: center; float: right">
+                        <canvas id="myChartb" style="width: 280" height="280"></canvas>
+                        <button id="index_buttons" onclick="clearcanvasb()">Clear Canvas</button>
+                    </div>
+                    <div id="samples" align="center">
+                        {{samples}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.container -->
+{% block contentwork %}
+<div id="select">
+    <form action="out" method="post" name="results">
+        <p>Select a history to see the results</p>
+        <input type="hidden" name="api" id="api" value={{api}}>
+        <input type="hidden" name="b2user" id="b2user" value={{b2user}}>
+        <input type="hidden" name="b2pass" id="b2pass" value={{b2pass}}>
+        <select id="history" name="history" class="select-workflow">
+            <optgroup label="Histories">
+                {%for history in histories %}
+                <option value="{{ history.id }}">{{ history.name }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+        <br />
+        <br />
+        <button id="index_buttons" onclick="document.results.submit()">See results</button>
+    </form>
+</div>
+{% endblock %}
+<br />
+<div id="footer">
+    <div class="container">
+        <p class="muted credit">
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+html {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+}
+
+h1 {
+    margin: 10px;
+}
+
+p {
+    margin: 10px;
+}
+
+#title {
+    text-align: right;
+}
+
+/*
+** Div CSS:
+** Layout for all three divs
+** Input, Analysis and Output divs
+*/
+#wrapper {
+    width: 90%;
+    margin: 0 auto;
+}
+
+#wrapper:after {
+    display: block;
+    height: 0px;
+    clear: both;
+    float: none;
+}
+
+#wrapper div {
+    float: left;
+    word-break: break-all;
+    margin-right: 3%;
+}
+
+#input {
+    /*border-top: 10px solid lightgreen;*/
+    border-top: 10px solid #BDE5FB;
+    width: 30%;
+}
+
+#analysis {
+    border-top: 10px solid #86CEF4;
+    width: 30%;
+}
+
+#output {
+    border-top: 10px solid #21317F;
+    width: 30%;
+}
+
+/*
+** Button CSS:
+** Shadow and hover options
+*/
+.button {
+    box-shadow: 0 2px 6px 0 rgba(0,0,0,0.24), 0 4px 8px 0 rgba(0,0,0,0.19);
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #f2f2f2;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #86CEF4;
+    color: #000;
+}
+
+.button:active {
+  background-color: #86CEF4;
+  box-shadow: 0 0px 0px rgba(0,0,0,0.0), 0 0px 0px 0 rgba(0,0,0,0.0);
+  outline: none;
+}
+
+/*
+** Table CSS:
+** Table headers will be blue and the rest is white
+**
+*/
+
+#output-files, #input-files {
+    margin: 10px;
+}
+
+
+#output-files th {
+    padding: 15px 32px;
+    background-color: #86CEF4;
+    border: none;
+}
+
+#input-files th {
+    padding: 15px 32px;
+    background-color: #86CEF4;
+    border: none;
+}
+
+#output-files tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#input-files tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
