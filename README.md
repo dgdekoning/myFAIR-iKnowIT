@@ -42,8 +42,8 @@ After these steps, you can run the myFAIR analysis.
 You can test myFAIR on our existing Virtual Machine.
 Everything is already pre-installed and can be used after following these steps below:
 
-1. Download the Virtual Machine [here](https://). **(The size of the Virtual Machine will be large due to the annotation files needed for Gemini, please make sure you have enough free space to run the Virtual Machine)**
-2. Add the Virtual Machine and start the Virtual Machine.
+1. Download the Virtual Machine [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/Qr5Nu6CBotyvG1Z). **(The size of the Virtual Machine will be large due to the annotation files needed for Gemini, please make sure you have enough free space to run the Virtual Machine)**
+2. Add the Virtual Machine and start the Virtual Machine (Password is "fair@emc")
 3. Open the terminal and and start the Fuseki Server by typing: **.local/apache-jena-fuseki-2.4.1/fuseki start**
 4. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page. To see if the fuseki sevrer is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
 5. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
