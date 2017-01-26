@@ -44,13 +44,12 @@ var TEMPLATE_QUERIES = {
         4 : {
 		text : 'Get samples from group',
                 variables: ['group'],
-                query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?disease ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+                query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
                         "VALUES (?group) {('#group#')}{" +
                             "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
                             "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
                             "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
                             "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#characteristics_ch1> ?disease ." +
                             "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
                             "}" +
                         "}" +
