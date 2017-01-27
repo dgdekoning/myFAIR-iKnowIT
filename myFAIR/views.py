@@ -2,6 +2,9 @@ import commands
 import json
 import csv
 import re
+import os
+import hashlib
+import time
 
 from time import strftime, gmtime
 from bioblend.galaxy import GalaxyInstance
@@ -66,7 +69,6 @@ def index(request):
                 "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
                 " '"+ storage +"' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
             b2folders = filter(None, b2folders)
-            # createMetadata(request)
             if not b2folders:
                 request.session.flush()
                 return HttpResponseRedirect('/')
@@ -273,9 +275,6 @@ def turtle(request):
                 filemeta = "metafile.csv"
             else:
                 createMetadata(request, datafile)
-                # metaf = open('metafile.csv', 'w')
-                # metaf.write('')
-                # metaf.close()
                 filemeta = "meta.txt"
             with open(filemeta, 'rb') as csvfile:
                 count = 0
@@ -325,7 +324,6 @@ def turtle(request):
                         count += 1
                         cnt += 1
             commands.getoutput("rm metafile.csv")
-            # commands.getoutput("rm meta.txt")
         return HttpResponseRedirect('/')
 
 
@@ -367,7 +365,6 @@ def get_input_data(api, server):
 def createMetadata(request, datafile):
     samples = []
     filename = datafile
-    # filename = "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav/transmart/GSE7621_series_matrix.txt"
     cont = commands.getoutput("curl -u " + request.session.get('username') + ":" + request.session.get('password') + " -k -s " + filename)
     with open("data.txt", "w") as datafile:
         datafile.write(cont)
@@ -428,11 +425,15 @@ def upload(request):
     control = request.POST.get('samples')
     test = request.POST.get('samplesb')
     new_hist = request.POST.get('historyname')
+    group = request.POST.get('group')
     files = []
     mfiles = []
     select = selected.split(',')
     mselect = selectedmeta.split(',')
-    groups = False
+    gselect = group.split(',')
+    groups = []
+    for g in gselect:
+        groups.append(g.replace('[', '').replace('"', '').replace(']', ''))
     for s in select:
         if s.replace('[', '').replace('"', '').replace(']', '') not in files:
             files.append(s.replace('[', '').replace('"', '').replace(']', ''))
@@ -554,14 +555,31 @@ def upload(request):
                                         ndfile.write('\n')
                                     else:
                                         line.strip()
-                        if len(samples_a) > 1 and ndfile.name != "input_meta.txt":
-                            gi.tools.upload_file(ndfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
+                        gi.tools.upload_file(ndfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
                         ndfile.close()
                         commands.getoutput("rm " + ndfile.name)
-                        with open("meta.txt", "r") as metadatafile:
+                    else:
+                        gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
+                        dfile.close()
+                        commands.getoutput("rm " + dfile.name)
+            commands.getoutput("rm " + tfile.name)
+            commands.getoutput("rm " + dfile.name)
+
+            for meta in mfiles:
+                mfile = str(meta).split('/')
+                mfilename = mfile[len(mfile)-1]
+                if meta == "No metadata":
+                    pass
+                else:
+                    mcont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + meta)
+                    with open("input_" + mfilename, "w") as metfile:
+                        metfile.write(mcont)
+                    metfile.close()
+                    linenr = 0
+                    with open("input_" + mfilename, "r") as metadatafile:
+                        if control != "[]" or test != "[]":
                             with open("input_classmeta.txt", "w") as nmeta:
-                                groups = True
-                                linenr = 0
+                                # groups = True
                                 for l in metadatafile:
                                     if linenr > 0:
                                         if linenr in samples_a:
@@ -576,29 +594,11 @@ def upload(request):
                                         l = l.replace('\n', '')
                                         nmeta.write(l + "\tclass_id" + "\n")
                                     linenr += 1
-                        commands.getoutput("tar -czvf datafiles.tar.gz " + nmeta.name + " " + dfile.name)
-                        gi.tools.upload_file("datafiles.tar.gz", history_id, file_type='auto', dbkey='?', prefix=file)
-                        gi.tools.upload_file(nmeta.name, history_id, file_type='auto', dbkey='?', prefix=file)
-                    else:
-                        gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
-                        dfile.close()
-                        commands.getoutput("rm " + dfile.name)
-            commands.getoutput("rm " + tfile.name)
-            for mfile in mfiles:
-                nfile = str(mfile).split('/')
-                filename = nfile[len(nfile)-1]
-                if mfile == "No metadata":
-                    pass
-                else:
-                    cont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + mfile)
-                    with open("input_" + filename, "w") as dfile:
-                        dfile.write(cont)
-                    if groups:
-                        pass
-                    else:
-                        gi.tools.upload_file(dfile.name, history_id, file_type='auto', dbkey='?', prefix=mfile)
-                        dfile.close()
-                    # commands.getoutput("rm " + dfile.name)
+                            gi.tools.upload_file(nmeta.name, history_id, file_type='auto', dbkey='?', prefix=file)
+                            commands.getoutput("rm " + nmeta.name)
+                        else:
+                            gi.tools.upload_file(metadatafile.name, history_id, file_type='auto', dbkey='?', prefix=file)
+                            commands.getoutput("rm " + metadatafile.name)
         if workflowid != "0":
             datamap = dict()
             # Find a more generic label to use with the Galaxy workflow
@@ -617,9 +617,65 @@ def upload(request):
                 elif c >= 3:
                     datamap[in4] = {'src': "hda", 'id': get_input_data(api, server)['input4'][0]}
             gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
+            gi.workflows.export_workflow_to_local_path(workflowid, "", True)
+            outputs = get_output(api, server, workflowid)
+            # i=0
+            # for iname in outputs[1]:
+            #     cont = commands.getoutput("curl -s -k " + server+outputs[0][i])
+            #     old_name = iname.replace('/', ' ') + "_" + strftime("%d_%b_%Y_%H:%M:%S", gmtime())
+            #     with open(old_name, "w") as inputfile:
+            #         inputfile.write(cont)
+            #     new_name = sha1sum(old_name) + "_" + old_name
+            #     os.rename(old_name, new_name)
+            #     commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+            #         server + "/owncloud/remote.php/webdav/" + group + "/" + new_name)
+            #     commands.getoutput("rm " + new_name)
+            #     i+=1
+            o=0
+            for outname in outputs[3]:
+                cont = commands.getoutput("curl -s -k " + server+outputs[2][o])
+                old_name =  strftime("%d_%b_%Y_%H:%M:%S", gmtime()) +  "_" + outname.replace('/', '_').replace(' ', '_')
+                with open(old_name, "w") as outputfile:
+                    outputfile.write(cont)
+                new_name = sha1sum(old_name) + "_" + old_name
+                os.rename(old_name, new_name)
+                commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                    server + "/owncloud/remote.php/webdav/" + group + "/" + new_name)
+                commands.getoutput("rm " + new_name)
+                o+=1
+            for filename in os.listdir("."):
+                if ".ga" in filename:
+                    new_name = sha1sum(filename) + "_" + filename
+                    os.rename(filename, new_name)
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                    server + "/owncloud/remote.php/webdav/" + group + "/" + new_name)
+            commands.getoutput("rm input_test")
+            commands.getoutput("rm " + new_name)
             return render_to_response('output.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid, 'server': server})
         else:
+            outputs = get_output(api, server, workflowid)
+            n=0
+            for iname in outputs[1]:
+                cont = commands.getoutput("curl -s -k " + server+outputs[0][n])
+                old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + iname
+                with open(old_name, "w") as inputfile:
+                    inputfile.write(cont)
+                new_name = sha1sum(old_name) + "_" + old_name
+                os.rename(old_name, new_name)
+                for g in groups:
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                        server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/" + new_name)
+                commands.getoutput("rm " + new_name)
+                n+=1
             return HttpResponseRedirect("/")
+
+
+def sha1sum(filename, blocksize=65536):
+    hash = hashlib.sha1()
+    with open(filename, "rb") as f:
+        for block in iter(lambda: f.read(blocksize), b""):
+            hash.update(block)
+    return hash.hexdigest()
 
 
 @csrf_exempt
@@ -628,29 +684,22 @@ def output(request):
         return HttpResponseRedirect("/")
     else:
         server = request.session.get('server')
-        api = request.POST.get('api')
+        api = request.session.get('api')
         gi = GalaxyInstance(url=server, key=api)
         workflow = request.POST.get('workflowid')
         if request.method == 'POST':
             historyid = request.POST.get('history')
             pid = request.POST.get('pid')
-            """
-            Variables for getting the input files.
-            These are used in the for loops to get to the id's of the datasets
-            """
+            #Variables for getting the input files.
             inputs = []
             input_ids = []
-            """
-            Variables for getting the output files.
-            These are used to get all the files with the OK status.
-            In the HTML we will remove all the input files.
-            """
+            #Variables for getting the output files.
             output = []
             hist = gi.histories.show_history(historyid)
-            histories = hist['state_ids']
-            dump = json.dumps(histories)
-            ok = json.loads(dump)
-            files = ok['ok']
+            state = hist['state_ids']
+            dump = json.dumps(state)
+            status = json.loads(dump)
+            files = status['ok']
             for o in files:
                 oug = gi.datasets.show_dataset(o, deleted=False, hda_ldda='hda')
                 if "input_" in oug['name']:
@@ -660,7 +709,6 @@ def output(request):
             for i in inputs:
                 iug = gi.datasets.show_dataset(i, deleted=False, hda_ldda='hda')
                 input_ids.append(iug)
-            print len(inputs)
             ug_context = {'outputs': output, 'inputs': input_ids, 'hist': hist, 'server': server}
             return render(request, 'output.html', ug_context)
 
@@ -668,3 +716,53 @@ def output(request):
 def logout(request):
     request.session.flush()
     return HttpResponseRedirect("/")
+
+
+def get_output(api, server, workflowid):
+    if api is None:
+        return HttpResponseRedirect("/")
+    else:
+        server = server
+        api = api
+        gi = GalaxyInstance(url=server, key=api)
+        workflow = workflowid
+        historyid = get_history_id(api, server)
+        #Variables for getting the input files.
+        inputs = []
+        input_ids = []
+        #Variables for getting the output files.
+        outputs = []
+        hist = gi.histories.show_history(historyid)
+        state = hist['state_ids']
+        dump = json.dumps(state)
+        status = json.loads(dump)
+        time.sleep(10)
+        while status['running'] or status['queued'] or status['new'] or status['upload']:
+            hist = gi.histories.show_history(historyid)
+            state = hist['state_ids']
+            dump = json.dumps(state)
+            status = json.loads(dump)
+            if not status['running'] and not status['queued'] and not status['new'] and not status['upload']:
+                break
+        files = status['ok']
+        for o in files:
+            oug = gi.datasets.show_dataset(o, deleted=False, hda_ldda='hda')
+            if "input_" in oug['name']:
+                inputs.append(oug['id'])
+            else:
+                outputs.append(oug)
+        for i in inputs:
+            iug = gi.datasets.show_dataset(i, deleted=False, hda_ldda='hda')
+            input_ids.append(iug)
+        ug_context = {'outputs': outputs, 'inputs': input_ids, 'hist': hist, 'server': server}
+        in_url = []
+        in_name = []
+        out_url = []
+        out_name = []
+        for input_id in input_ids:
+            in_name.append(input_id["name"])
+            in_url.append(input_id["download_url"])
+        for out in outputs:
+            out_name.append(out["name"])
+            out_url.append(out["download_url"])
+        return in_url, in_name, out_url, out_name
