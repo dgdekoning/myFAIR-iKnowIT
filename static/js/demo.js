@@ -264,6 +264,7 @@ function postdata(g) {
     }
     var dat = [];
     var meta = [];
+    var group = [];
     var samples = new Array;
     var samplesb = new Array;
     $("input:checkbox[name=samplea]:checked").each(function(){
@@ -278,11 +279,13 @@ function postdata(g) {
     for (s = 0; s < selected.length; s++) {
         dat.push(getrow(selected[s])[0]);
         meta.push(getrow(selected[s])[1]);
+        group.push(getrow(selected[s])[2]);
     }
     var jsonSamples = JSON.stringify(samples);
     var jsonSamplesb = JSON.stringify(samplesb);
     var jsonSelected = JSON.stringify(dat);
     var jsonMeta = JSON.stringify(meta);
+    var jsonGroup = JSON.stringify(group);
     var data_id = checkData(g);
     var meta_id = checkMeta(g);
     var token = "ygcLQAJkWH2qSfawc39DI9tGxisceVSTgw9h2Diuh0z03QRx9Lgl91gneTok";
@@ -295,7 +298,8 @@ function postdata(g) {
         data: { 'data_id': data_id, 'token': token, 'workflowid': workflowid, 
         'filetype': filetype, 'dbkey': dbkey, 'meta_id': meta_id, 
         'selected': jsonSelected, 'meta': jsonMeta, 'onlydata': onlydata, 
-        'samples': jsonSamples, 'samplesb': jsonSamplesb, 'historyname': historyname},
+        'samples': jsonSamples, 'samplesb': jsonSamplesb, 'historyname': historyname, 
+        'group': jsonGroup},
         success: function (data) {
             if(dat.length <= 0) {
                 document.getElementById('errormessage').innerHTML = "No file selected, please try again."
@@ -367,11 +371,14 @@ function checkMeta(g) {
 function getrow(r) {
     var str = "";
     var str2 = "";
+    var str3 = "";
     var x = document.getElementById('results_table').rows[r].cells.item(1).innerText;
     var y = document.getElementById('results_table').rows[r].cells.item(2).innerText;
+    var z = document.getElementById('results_table').rows[r].cells.item(3).innerText;
     str = str + x;
     str2 = str2 + y;
-    return [str, str2];
+    str3 = str3 + z;
+    return [str, str2, str3];
 }
 function getsamples() {
     var samples = new Array;
