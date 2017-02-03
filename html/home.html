@@ -112,16 +112,18 @@
                     <h3 class="panel-title">Step 3 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Result:</h3>
                 </div>
                 <div class="panel-body">
-                    <p>Select a workflow from the dropdown menu</p>
-                    <select id="workflow" name="workflow" class="select-workflow">
-                        <optgroup label="Workflows">
-                            <option value="0">Use Galaxy</option>
-                        {% for workflow in workflows %}
-                            <option value="{{ workflow.id }}">{{ workflow.name }}</option>
-                        {% endfor %}
-                        </optgroup>
-                    </select>
-                    <input type="checkbox" value="true" name="onlydata" id="onlydata" />Send datafile only
+                    <div id="workflow_select">
+                        <p>Select a workflow from the dropdown menu</p>
+                        <select id="workflow" name="workflow" class="select-workflow">
+                            <optgroup label="Workflows">
+                                <option value="0">Use Galaxy</option>
+                            {% for workflow in workflows %}
+                                <option value="{{ workflow.id }}">{{ workflow.name }}</option>
+                            {% endfor %}
+                            </optgroup>
+                        </select>
+                        <input type="checkbox" value="true" name="onlydata" id="onlydata" />Send datafile only
+                    </div>
                     <div class="alert alert-info fade in" id="noResultPanel">
                         <p><strong> No result :</strong> Sorry no result available for these query params</p>
                     </div>
@@ -163,8 +165,8 @@
 </div>
 <!-- /.container -->
 {% block contentwork %}
-<div id="select">
-    <form action="out" method="post" name="results">
+<div id="select" style="display: none;">
+    <!--<form action="out" method="post" name="result">
         <p>Select a history to see the results</p>
         <input type="hidden" name="api" id="api" value={{api}}>
         <input type="hidden" name="b2user" id="b2user" value={{b2user}}>
@@ -178,8 +180,9 @@
         </select>
         <br />
         <br />
-        <button id="index_buttons" onclick="document.results.submit()">See results</button>
-    </form>
+        <button id="index_buttons" onclick="document.result.submit()">See results</button>
+    </form>-->
+    <button id="index_buttons" onclick="getoutput()">Show results</button>
 </div>
 {% endblock %}
 <br />

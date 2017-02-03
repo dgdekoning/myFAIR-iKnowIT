@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block style %}
+<link href="{% static 'css/output.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+
+|| <a href="/">&lt;&lt;back</a>
+|| <a href="/logout">Logout</a> ||
+<div id="title">
+    <h1>{{resultid}}</h1>
+</div>
+<div id="wrapper">
+    <div id="input" style="overflow-x:auto;">
+        <h1>Input Files</h1>
+        <p>
+        <table id="input-files">
+            <span id="input-list" style="display: none">
+                {{inputs}}
+            </span>
+            <th>Input File</th>
+            <th></th>
+            {% for input in inputs %}
+                <tr>
+                    <td>{{input}}</td>
+                    <td>
+                        <a href="{{storage}}/{{resultid}}/{{input}}">
+                            <button class="button">Download</button>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        </p>
+    </div>
+    <div id="analysis" style="overflow-x:auto;">
+        <h1>Analysis Details</h1>
+        <p>
+            <table id="analysis-info">
+                <th>Galaxy workflow file</th>
+                <th>workflowid</th>
+                <th></th>
+                {% if outputs %}
+                    {% for output in outputs %}
+                        {% if ".ga" in output %}
+                            <tr>
+                                <td>{{output}}</td>
+                                <td id="workflowid">{{workflowid}}</td>
+                                <td>
+                                    <span id="ga" style="display: none">{{storage}}/{{resultid}}/{{output}}</span>
+                                    <a href="{{storage}}/{{resultid}}/{{output}}">
+                                        <button class="button">Download</button>
+                                    </a>
+                                    <!--<button class="button" onclick="rerun_analysis()">Run Analysis</button>-->
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td>No workflow used.</td>
+                        <td id="workflowid">{{workflowid}}</td>
+                    </tr>
+                {% endif %}
+            </table>
+            <table id="analysis-info">
+                <th>Workflow steps</th>
+                {% if workflow %}
+                    {% for step in workflow %}
+                        <tr>
+                            <td>{{step.name}}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td>No workflow used.</td>
+                    </tr>
+                {% endif %}
+            </table>
+        </p>
+        <button class="button" name="rerun" onclick="rerun_analysis()">Run Again</button>
+        <br>
+        <br>
+        <div id="running" style="display: none" align="center">
+            <img id="loadingImage" src="{% static 'img/loading.gif' %}" width="375" height="187.5">
+        </div>
+        <div id="finished" style="display:none" align="center">
+            <img id="checkImage" src="{% static 'img/check.png' %}" width="125" height="125">
+        </div>
+        <div id="error" style="display:none" align="center">
+            <img id="errorImage" src="{% static 'img/error.png' %}" width="125" height="125">
+            <br />
+            <p id="errormessage">
+                Oops...wait a few seconds or reload the page to try again.
+            </p>
+        </div>
+    </div>
+    <div id="output" style="overflow-x:auto;">
+        <h1>Output Files</h1>
+        <p>
+        <table id="output-files">
+            <th>Output File</th>
+            <th></th>
+            {% if outputs  %}
+                {% for output in outputs %}
+                    {% if ".ga" not in output %}
+                        <tr>
+                            <td>{{output}}</td>
+                            <td>
+                                <a href="{{storage}}/{{resultid}}/{{output}}">
+                                    <button class="button">Download</button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <tr><td>No output files.</td></tr>
+            {% endif %}
+        </table>
+        </p>
+    </div>
+</div>
+{% endblock %}
