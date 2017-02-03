@@ -160,7 +160,11 @@ function fillTable(result) {
     table += '</tr></thead><tbody>'
     var rownr = 1;
     result.results.bindings.forEach(function (value) {
+
         table += '<tr>'
+        if(hasCol) {
+            table+='<td><button id="index_buttons" onclick="getoutput()">Show results</button></td>';
+        }
         table += '<td><input type="checkbox" name="select" value="'+ rownr +'"></td>';
         rownr = rownr + 1;
         result.head.vars.forEach(function (head) {
@@ -211,27 +215,41 @@ function fillTable(result) {
         previousButtonClass: "btn btn-primary btn-xs",
         nextButtonClass: "btn btn-primary btn-xs"
     });
-    $('#galaxy').html(
-        '<select name="filetype" id="filetype">' +
-            '<optgroup label="File Type:">' +
-            '<option value="vcf">vcf</option>' +
-            '<option value="tabular">tabular</option>' +
-            '<option value="fasta">fasta</option>' +
-            '<option value="fastq">fastq</option>' +
-            '<option value="auto">auto</option>' +
-            '</optgroup>' +
-            '</select>' +
-            '<select name="dbkey" id="dbkey">' +
-            '<optgroup label="Database">' +
-            '<option value="hg19">HG19</option>' +
-            '<option value="hg18">HG18</option>' +
-            '<option value="?">?</option>' +
-            '</optgroup>' +
-            '</select>'+
-            '<input type="text" id="historyname" name="historyname" placeholder="Enter new history name."/>' +
-        '<button id="index_buttons" onclick="postdata(\'group\')">send to galaxy</button>'
-        
-    );
+    function hasColumn(tblSel, content) {
+        var ths = document.querySelectorAll(tblSel + ' th');
+        return Array.prototype.some.call(ths, function(el) {
+            return el.textContent === content;
+        });
+    };
+    var hasCol = hasColumn("#results_table thead", "workflow");
+    if(hasCol) {
+        document.getElementById('select').style.display = "block";
+        $('#galaxy').html(
+            '<p>Select a result and press the Show results button</p>'
+        );
+    } else {
+        $('#galaxy').html(
+            '<select name="filetype" id="filetype">' +
+                '<optgroup label="File Type:">' +
+                '<option value="vcf">vcf</option>' +
+                '<option value="tabular">tabular</option>' +
+                '<option value="fasta">fasta</option>' +
+                '<option value="fastq">fastq</option>' +
+                '<option value="auto">auto</option>' +
+                '</optgroup>' +
+                '</select>' +
+                '<select name="dbkey" id="dbkey">' +
+                '<optgroup label="Database">' +
+                '<option value="hg19">HG19</option>' +
+                '<option value="hg18">HG18</option>' +
+                '<option value="?">?</option>' +
+                '</optgroup>' +
+                '</select>' +
+                '<input type="text" id="historyname" name="historyname" placeholder="Enter new history name."/>' +
+            '<button id="index_buttons" onclick="postdata(\'group\')">send to galaxy</button>'
+        );
+    }
+
     // Sort table
     $('th').click(function(){
         var table = $(this).parents('table').eq(0)
@@ -318,6 +336,31 @@ function postdata(g) {
             document.getElementById('finished').style.display = "none";
             document.getElementById('error').style.display = "block";
             setTimeout(refresh, 5000);
+        }
+    });
+}
+function getoutput() {
+    var selected = new Array;
+    var group = [];
+    var resultid = new Array;
+    $("input:checkbox[name=select]:checked").each(function(){
+        selected.push($(this).val());
+    });
+    for (s = 0; s < selected.length; s++) {
+        resultid.push(getrow(selected[s])[1]);
+        group.push(getrow(selected[s])[2]);
+    }
+    var jsonGroup = JSON.stringify(group);
+    var jsonResultid = JSON.stringify(resultid);
+    $.ajax({
+        type: 'POST',
+        url: "results",
+        data: { 'group': jsonGroup, 'resultid': jsonResultid},
+        success: function (data) {
+            window.location.href = "/results"
+        },
+        error: function (data) {
+            alert(data);
         }
     });
 }
@@ -410,93 +453,30 @@ function getsamples() {
             error: function(data) {},
     });
 }
-// function clearcanvas() {
-//     $('#plot').load(location.href + ' #plot>*', "");
-//     document.getElementById('plot').style.display = "none";
-// }
-// function clearcanvasb() {
-//     $('#plotb').load(location.href + ' #plotb>*', "");
-//     document.getElementById('plotb').style.display = "none";
-// }
-// function makeplot(samples, samplesb, data, datab) {
-//     document.getElementById('plot').style.display = "block";
-//     document.getElementById('plotb').style.display = "block";
-//     var ctx = document.getElementById("myChart");
-//     var ctxb = document.getElementById("myChartb");
-//     var context = ctx.getContext('2d');
-//     var contextb = ctxb.getContext('2d');
-//     var samples = samples;
-//     var samplesb = samplesb;
-//     var myChart = new Chart(ctx, {
-//         type: 'bar',
-//         data: {
-//             labels: samples,
-//             datasets: [{
-//                 label: '# of Votes',
-//                 data: data,
-//                 backgroundColor: [
-//                     'rgba(255, 99, 132, 0.2)',
-//                     'rgba(54, 162, 235, 0.2)',
-//                     'rgba(255, 206, 86, 0.2)',
-//                     'rgba(75, 192, 192, 0.2)',
-//                     'rgba(153, 102, 255, 0.2)',
-//                     'rgba(255, 159, 64, 0.2)'
-//                 ],
-//                 borderColor: [
-//                     'rgba(255,99,132,1)',
-//                     'rgba(54, 162, 235, 1)',
-//                     'rgba(255, 206, 86, 1)',
-//                     'rgba(75, 192, 192, 1)',
-//                     'rgba(153, 102, 255, 1)',
-//                     'rgba(255, 159, 64, 1)'
-//                 ],
-//                 borderWidth: 1
-//             }]
-//         },
-//         options: {
-//             scales: {
-//                 yAxes: [{
-//                     ticks: {
-//                         beginAtZero:true
-//                     }
-//                 }]
-//             }
-//         }
-//     });
-//     var myChartb = new Chart(ctxb, {
-//         type: 'bar',
-//         data: {
-//             labels: samplesb,
-//             datasets: [{
-//                 label: '# of Votes',
-//                 data: datab,
-//                 backgroundColor: [
-//                     'rgba(255, 99, 132, 0.2)',
-//                     'rgba(54, 162, 235, 0.2)',
-//                     'rgba(255, 206, 86, 0.2)',
-//                     'rgba(75, 192, 192, 0.2)',
-//                     'rgba(153, 102, 255, 0.2)',
-//                     'rgba(255, 159, 64, 0.2)'
-//                 ],
-//                 borderColor: [
-//                     'rgba(255,99,132,1)',
-//                     'rgba(54, 162, 235, 1)',
-//                     'rgba(255, 206, 86, 1)',
-//                     'rgba(75, 192, 192, 1)',
-//                     'rgba(153, 102, 255, 1)',
-//                     'rgba(255, 159, 64, 1)'
-//                 ],
-//                 borderWidth: 1
-//             }]
-//         },
-//         options: {
-//             scales: {
-//                 yAxes: [{
-//                     ticks: {
-//                         beginAtZero:true
-//                     }
-//                 }]
-//             }
-//         }
-//     });
-// }
+
+function rerun_analysis() {
+    wid = document.getElementById("workflowid").innerText; 
+    inputs = document.getElementById("input-list").innerText;
+    inputs = inputs.split(',');
+    resultid = document.getElementById("title").innerText;
+    var urls = new Array;
+    for(i=0; i<=(inputs.length-1); i++) {
+        urls.push(resultid.replace(" ", "") + "/" + inputs[i].replace(" ", "").replace("\n", "").replace("'", "").replace("[", "").replace("]", "").replace("'", ""))
+    }
+    var jsonURLS = JSON.stringify(urls);
+    document.getElementById('running').style.display = "block";
+    $.ajax({
+        type: 'POST',
+        url: "rerun",
+        data: {'workflowid': wid, 'inputs': inputs, 'urls': jsonURLS, 'resultid': resultid},
+        success: function (data) {
+            document.getElementById('running').style.display = "none";
+            document.getElementById('finished').style.display = "block";
+            setTimeout(refresh, 5000);
+        },
+        error: function(data) {
+            document.getElementById('error').style.display = "block";
+            setTimeout(refresh, 5000);
+        },
+    });
+}

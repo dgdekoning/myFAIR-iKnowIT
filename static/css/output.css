@@ -63,7 +63,7 @@ p {
     background-color: #fff;
     color: #000;
     border: 1px solid #f2f2f2;
-    padding: 5px 15px;
+    padding: 5px 5px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -88,7 +88,7 @@ p {
 **
 */
 
-#output-files, #input-files {
+#output-files, #input-files, #analysis-info {
     margin: 10px;
 }
 
@@ -105,10 +105,20 @@ p {
     border: none;
 }
 
+#analysis-info th {
+    padding: 15px 32px;
+    background-color: #86CEF4;
+    border: none;
+}
+
 #output-files tr:nth-child(even) {
     background-color: #f2f2f2;
 }
 
 #input-files tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#analysis-info tr:nth-child(even) {
     background-color: #f2f2f2;
 }

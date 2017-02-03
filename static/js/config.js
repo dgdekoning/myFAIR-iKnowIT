@@ -6,83 +6,96 @@ var SPARQL_ENDPOINT = 'http://localhost:3030/ds/query?query='
 var USER = document.getElementById('user').innerHTML.replace('@', '');
 var TEMPLATE_QUERIES = {
         1 : {
-		text : 'Get all samples from all files',
-                variables: ['all'],
-                query : "SELECT DISTINCT ?pid ?meta ?group ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+">" +
-                        "WHERE{" +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
-                        "}" + 
-                        "ORDER BY (?sample)"
+            text : 'Get all samples from all files',
+            variables: ['all'],
+            query : "SELECT DISTINCT ?pid ?meta ?group ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+">" +
+                    "WHERE{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
+                    "}" + 
+                    "ORDER BY (?sample)"
             },
         2 : {
-		text : 'Get all available files',
-                variables: ['all'],
-                query : "SELECT DISTINCT ?pid ?meta ?group FROM <http://127.0.0.1:3030/ds/data/"+USER+">" +
-                        "WHERE{" +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
-                        "}" +
-                        "ORDER BY (?group)"
+            text : 'Get all available files',
+            variables: ['all'],
+            query : "SELECT DISTINCT ?pid ?meta ?group FROM <http://127.0.0.1:3030/ds/data/"+USER+">" +
+                    "WHERE{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                    "}" +
+                    "ORDER BY (?group)"
             },
 		3 : {
-		text : 'Get file(s) from sample',
-                variables: ['sampleid'],
-                query : "SELECT DISTINCT ?pid ?meta ?group ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
-                        "VALUES (?sample) {('#sampleid#')}{" +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
-                            "}" +
+            text : 'Get file(s) from sample',
+            variables: ['sampleid'],
+            query : "SELECT DISTINCT ?pid ?meta ?group ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+                    "VALUES (?sample) {('#sampleid#')}{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
                         "}" +
-                        "ORDER BY (?sample)"
+                    "}" +
+                    "ORDER BY (?sample)"
             },
         4 : {
-		text : 'Get samples from group',
-                variables: ['group'],
-                query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
-                        "VALUES (?group) {('#group#')}{" +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
-                            "}" +
+            text : 'Get samples from group',
+            variables: ['group'],
+            query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+                    "VALUES (?group) {('#group#')}{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
                         "}" +
-                        "ORDER BY (?group)"
+                    "}" +
+                    "ORDER BY (?group)"
             },
         5 : {
-        text : 'Get samples from sex',
-                variables: ['sex'],
-                query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
-                        "VALUES (?sex) {('#sex#')}{" +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
-                            "}" +
+            text : 'Get samples from sex',
+            variables: ['sex'],
+            query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+                    "VALUES (?sex) {('#sex#')}{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
                         "}" +
-                        "ORDER BY (?sex)"
+                    "}" +
+                    "ORDER BY (?sex)"
         },
         6 : {
-        text : 'Get samples from disease',
-                variables: ['disease'],
-                query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?disease ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
-                        "VALUES (?disease) {('#disease#')}{" +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
-                            "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#characteristics_ch1> ?disease ." +
-                            "}" +
+            text : 'Get samples from disease',
+            variables: ['disease'],
+            query : "SELECT DISTINCT ?pid ?meta ?group ?sex ?disease ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+                    "VALUES (?disease) {('#disease#')}{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#characteristics_ch1> ?disease ." +
                         "}" +
-                        "ORDER BY (?disease)"
+                    "}" +
+                    "ORDER BY (?disease)"
+        },
+        7 : {
+            text : 'Get results from group',
+            variables: ['group'],
+            query : "SELECT DISTINCT (?s as ?id) ?resultid ?group ?workflow FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+                    "VALUES (?group) {('#group#')}{" +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#results_id> ?resultid ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?group ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#workflow> ?workflow ." +
+                        "}" +
+                    "}" +
+                    "ORDER BY (?results)"
         },
         };
 var VARIABLE_QUERIES = {
