@@ -25,10 +25,12 @@ urlpatterns = [
     url(r'^login', views.login),
     url(r'^logout$', views.logout),
     url(r'^upload', views.upload),
-    url(r'^out', views.output),
+    # url(r'^out', views.output),
     url(r'^eudat', views.eudat),
     url(r'^turtle', views.turtle),
     url(r'^samples', views.samples),
     url(r'^modify', views.modify),
     url(r'^delete', views.delete),
+    url(r'^results', views.show_results),
+    url(r'^rerun', views.rerun_analysis),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
