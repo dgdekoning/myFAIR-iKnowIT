@@ -11,7 +11,8 @@
         <input type="hidden" name="metadata" id="metadata" value="{{ m }}">
     {% endfor %}
     {% for d in datafiles %}
-        <input type="hidden" name="datafile" id="datafile" value="{{ d }}">
+
+        <input type="hidden" name="datafile" id="datafile" value="{{ datafiles }}">
     {% endfor %}
 </form>
 <p>Triples are being stored...Please wait.
