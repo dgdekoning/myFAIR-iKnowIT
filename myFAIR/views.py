@@ -291,6 +291,7 @@ def turtle(request):
             login()
         else:
             pid = datafile
+            pid = pid.split(',')
             line = ""
             if metadata is not None:
                 metafile = commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " " + metadata)
@@ -303,59 +304,60 @@ def turtle(request):
                 filemeta = "meta.txt"
                 commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
                         server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt")
-            with open(filemeta, 'rb') as csvfile:
-                count = 0
-                reader = csv.DictReader(csvfile)
-                cnt = 0
-                # if metadata is None:
-                #     commands.getoutput(
-                #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                #         b2user.replace('@', '')+"#pid> \""+pid+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                #     commands.getoutput(
-                #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                #         b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                #     commands.getoutput(
-                #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                #         b2user.replace('@', '')+"#sample_id> \"None\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                #     commands.getoutput(
-                #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                #         b2user.replace('@', '')+"#meta> \"No metadata\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                #     cnt += 1
-                # else:
-                for row in reader:
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#pid> \""+pid+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    if filemeta == "meta.txt":
+            for p in pid:
+                with open(filemeta, 'rb') as csvfile:
+                    count = 0
+                    reader = csv.DictReader(csvfile)
+                    cnt = 0
+                    # if metadata is None:
+                    #     commands.getoutput(
+                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                    #         b2user.replace('@', '')+"#pid> \""+pid+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    #     commands.getoutput(
+                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                    #         b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    #     commands.getoutput(
+                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                    #         b2user.replace('@', '')+"#sample_id> \"None\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    #     commands.getoutput(
+                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                    #         b2user.replace('@', '')+"#meta> \"No metadata\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    #     cnt += 1
+                    # else:
+                    for row in reader:
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                             b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    else:
+                            b2user.replace('@', '')+"#pid> \""+p.replace('[', '').replace(']', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                             b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#meta> \""+metadata+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    for (k, v) in row.items():
-                        for h in range(0, len(k.split('\t'))):
-                            if k.split('\t')[h] != "":
-                                value = v.split('\t')[h]
-                                header = k.split('\t')[h]
-                                commands.getoutput(
-                                    "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                    b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                    b2user.replace('@', '')+"#"+header.replace('"', '')+"> \""+value.replace('"', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    count += 1
-                    cnt += 1
+                            b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        if filemeta == "meta.txt":
+                            commands.getoutput(
+                                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        else:
+                            commands.getoutput(
+                                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                b2user.replace('@', '')+"#meta> \""+metadata+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        for (k, v) in row.items():
+                            for h in range(0, len(k.split('\t'))):
+                                if k.split('\t')[h] != "":
+                                    value = v.split('\t')[h]
+                                    header = k.split('\t')[h]
+                                    commands.getoutput(
+                                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                        b2user.replace('@', '')+"#"+header.replace('"', '')+"> \""+value.replace('"', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        count += 1
+                        cnt += 1
             commands.getoutput("rm metafile.csv")
             commands.getoutput("rm meta.txt")
         return HttpResponseRedirect('/')
@@ -375,6 +377,7 @@ def get_history_id(api, server):
 
 """
 Get input data based on the selected history.
+Find the number of uploaded files and return the id's of the files.
 """
 def get_input_data(api, server):
     gi = GalaxyInstance(url=server, key=api)
@@ -384,9 +387,11 @@ def get_input_data(api, server):
     input2 = []
     input3 = []
     input4 = []
+    inputs = []
     datacount = 0
     datasets = [dataset for dataset in hist_contents if not dataset['deleted']]
     for dataset in datasets:
+        # inputs.append(dataset['id'])
         if dataset['hid'] == 1:
             datacount = 1
             input1.append(dataset['id'])
@@ -399,6 +404,7 @@ def get_input_data(api, server):
         elif dataset['hid'] == 4:
             datacount = 4
             input4.append(dataset['id'])
+    # return inputs
     return {'input1': input1, 'input2': input2, 'input3': input3, 'input4': input4, 'datacount': datacount}
 
 
@@ -648,8 +654,24 @@ def upload(request):
                             gi.tools.upload_file(metadatafile.name, history_id, file_type='auto', dbkey='?', prefix=file)
                             commands.getoutput("rm " + metadatafile.name)
         if workflowid != "0":
+            in_count = 0
             resultid = uuid.uuid1()
             datamap = dict()
+            mydict = {}
+            jsonwf = gi.workflows.export_workflow_json(workflowid)
+            jwf = json.dumps(jsonwf)
+            wf = json.loads(jwf)
+            for i in range(len(jsonwf["steps"])):
+                if jsonwf["steps"][str(i)]["name"] == "Input dataset":
+                    label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
+                    mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
+            inputfiles = get_input_data(api, server)
+            # for k,v in mydict.items():
+            #     for i in range(0, len(inputfiles)):
+            #         if i == in_count:
+            #             datamap[v] = {'src': "hda", 'id': inputfiles[i]}
+            #     in_count+=1
+                # datamap[v] = {'src': "hda", 'id': get_input_data(api, server)['input%s'%(str(in_count))][0]}
             # Find a more generic label to use with the Galaxy workflow
             in1 = gi.workflows.get_workflow_inputs(workflowid, label='VCF')[0]
             if get_input_data(api, server)['datacount'] >= 2:
@@ -1030,23 +1052,34 @@ def rerun_analysis(request):
         commands.getoutput("rm " + infile.name)
     time.sleep(15)
     if workflowid != "0":
+        in_count = 0
         datamap = dict()
-        # Find a more generic label to use with the Galaxy workflow
-        in1 = gi.workflows.get_workflow_inputs(workflowid, label='VCF')[0]
-        if len(urls) >= 2:
-            in2 = gi.workflows.get_workflow_inputs(workflowid, label='PED')[0]
-        elif len(urls) >= 3:
-            in3 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
-        elif len(urls) >= 4:
-            in4 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
-        for c in range(0, len(urls)):
-            if c == 0:
-                datamap[in1] = {'src': "hda", 'id': get_input_data(api, server)['input1'][0]}
-            elif c >= 1:
-                datamap[in2] = {'src': "hda", 'id': get_input_data(api, server)['input2'][0]}
-            elif c >= 2:
-                datamap[in3] = {'src': "hda", 'id': get_input_data(api, server)['input3'][0]}
-            elif c >= 3:
-                datamap[in4] = {'src': "hda", 'id': get_input_data(api, server)['input4'][0]}
+        mydict = {}
+        jsonwf = gi.workflows.export_workflow_json(workflowid)
+        jwf = json.dumps(jsonwf)
+        wf = json.loads(jwf)
+        for i in range(len(jsonwf["steps"])):
+            if jsonwf["steps"][str(i)]["name"] == "Input dataset":
+                label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
+                mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
+        for k,v in mydict.items():
+            in_count+=1
+            datamap[v] = {'src': "hda", 'id': get_input_data(api, server)['input%s'%(str(in_count))][0]}
+        # in1 = gi.workflows.get_workflow_inputs(workflowid, label='VCF')[0]
+        # if len(urls) >= 2:
+        #     in2 = gi.workflows.get_workflow_inputs(workflowid, label='PED')[0]
+        # elif len(urls) >= 3:
+        #     in3 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
+        # elif len(urls) >= 4:
+        #     in4 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
+        # for c in range(0, len(urls)):
+        #     if c == 0:
+        #         datamap[in1] = {'src': "hda", 'id': get_input_data(api, server)['input1'][0]}
+        #     elif c >= 1:
+        #         datamap[in2] = {'src': "hda", 'id': get_input_data(api, server)['input2'][0]}
+        #     elif c >= 2:
+        #         datamap[in3] = {'src': "hda", 'id': get_input_data(api, server)['input3'][0]}
+        #     elif c >= 3:
+        #         datamap[in4] = {'src': "hda", 'id': get_input_data(api, server)['input4'][0]}
         gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
     return HttpResponseRedirect("/")
