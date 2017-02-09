@@ -7,13 +7,8 @@
 </script>
 <form action="/turtle" method="post" id="turtle" name="turtle">
     <input type="hidden" name="group" id="group" value="{{ group }}">
-    {% for m in metadata %}
-        <input type="hidden" name="metadata" id="metadata" value="{{ m }}">
-    {% endfor %}
-    {% for d in datafiles %}
-
-        <input type="hidden" name="datafile" id="datafile" value="{{ d }}">
-    {% endfor %}
+    <input type="hidden" name="metadata" id="metadata" value="{{ metadata }}">
+    <input type="hidden" name="datafile" id="datafile" value="{{ datafiles }}">
 </form>
 <p>Triples are being stored...Please wait.
 {% endblock %}

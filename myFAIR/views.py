@@ -63,7 +63,7 @@ def index(request):
     try:
         login(request)
         if 'api' not in request.session or 'username' not in request.session or 'password' not in request.session:
-            err = "Credentials are invalid. Please enter the correct values."
+            err = ""
             login(request)
             return render_to_response('login.html', context={'error': err})
         else:
@@ -78,32 +78,9 @@ def index(request):
                 " '"+ storage +"' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
             b2folders = filter(None, b2folders)
             if not b2folders:
+                err = "Credentials are invalid. Please try again."
                 request.session.flush()
-                return HttpResponseRedirect('/')
-        #     newturtle = open('new.ttl', 'w')
-        #     if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-        #         turtlefile = "/owncloud/remote.php/webdav/new.ttl"
-        #     else:
-        #         turtlefile = "/remote.php/webdav/new.ttl"
-        #     if turtlefile in b2folders:
-        #         oldturtle = commands.getoutput(
-        #             "curl -s -u " + b2user + ":" + b2pass + " " + storage + "/new.ttl")
-        #         for line in oldturtle:
-        #             newturtle.write(line)
-        #         newturtle.write("\n")
-        #         newturtle.close()
-        #         commands.getoutput("csv2rdf -b http://127.0.0.1:3030/ -p '#' -d ',' -i 1 new.csv >> new.ttl")
-        #         commands.getoutput(
-        #             "curl -X PUT -H Content-type:text/turtle -T new.ttl -G http://127.0.0.1:3030/ds/data "
-        #         "--data-urlencode graph="+b2user.replace('@', ''))
-        #         newturtle.close()
-        #     else:
-        #         commands.getoutput(
-        #             "curl -X PUT -H Content-type:text/turtle -T new.ttl -G http://127.0.0.1:3030/ds/data "
-        #         "--data-urlencode graph="+b2user.replace('@', ''))
-        #         newturtle.write("")
-        #         newturtle.close()
-	    # commands.getoutput("rm new.ttl")
+                return render_to_response('login.html', context={'error': err})
             gi = GalaxyInstance(url=server, key=api)
             user = gi.users.get_current_user()
             username = user['username']
@@ -113,9 +90,6 @@ def index(request):
             his = json.loads(hist)
             newhistid = his[0]['id']
             newhist = gi.histories.show_history(newhistid)
-            okay = False
-            if newhist['state'] == "ok":
-                okay = True
             return render(request, 'home.html',
                                       context={'workflows': workflows, 'histories': his, 'user': username, 'api': api,
                                                'b2user': b2user, 'b2pass': b2pass, 'server': server, 'storage': storage})
@@ -203,16 +177,19 @@ def eudat(request):
             files = filter(None, files)
             metadata = []
             datafiles = []
-            for i in files:
-                if request.POST.get(i) != "" and request.POST.get(i) is not None:
-                    if request.POST.get(i) == "m":
-                        metadata.append(storage + "/" + group + "/" + i)
-                    else:
-                        datafiles.append(storage + "/" + group + "/" + i)
+            if request.POST.get('datalist') is not None or request.POST.get('metalist') is not None:
+                datalist = request.POST.get('datalist')
+                metalist = request.POST.get('metalist')
+                datalist = datalist.split(',')
+                metalist = metalist.split(',')
+                for d in datalist:
+                    datafiles.append(storage + "/" + group + "/" + d)
+                for m in metalist:
+                    metadata.append(storage + "/" + group + "/" + m)
             if metadata or datafiles:
                 return render(request, 'turtle.html', context={'metadata': metadata, 'datafiles': datafiles, 'group': group})
             return render(request, 'eudat.html', context={'folders': folders, 'files': files, 'selected': group})
-        return render(request, 'eudat.html', context={'folders': folders})
+    return render(request, 'eudat.html', context={'folders': folders})
 
 
 """
@@ -228,136 +205,63 @@ def turtle(request):
         group = request.POST.get('group')
         metadata = request.POST.get('metadata')
         datafile = request.POST.get('datafile')
-        # token = "ygcLQAJkWH2qSfawc39DI9tGxisceVSTgw9h2Diuh0z03QRx9Lgl91gneTok"
-        '''
-########################################################################################################################
-########################################################################################################################
-        # Create deposition start
-        #
-        #
-        #
-        create_deposition = commands.getoutput(
-            "curl -s -k -X POST https://trng-b2share.eudat.eu/api/depositions?access_token=" + token)
-        deposition = json.loads(create_deposition)
-        dep = deposition['deposit_id']
-        #
-        #
-        #
-        # Create deposition end
-
-########################################################################################################################
-
-        # Create new file to upload start
-        #
-        #
-        #
-        f = open('newfile.txt', 'w')
-        f.write(datafile)
-        f.close()
-        commands.getoutput(
-            " curl -s -k -X POST -F file=@newfile.txt https://trng-b2share.eudat.eu/api/deposition/"
-            + dep + "/files?access_token=" + token)
-        commands.getoutput("rm newfile.txt")
-        #
-        #
-        #
-        # Create new file to upload end
-
-########################################################################################################################
-
-        # Commit deposition start
-        #
-        #
-        #
-        commit_deposition = commands.getoutput(
-            "curl -s -k -X POST -H \"Content-Type: application/json\" -d '{\"domain\":\"generic\", "
-            "\"title\":\"" + datafile + "\", \"description\":\"Description\", \"open_access\":\"true\", \"creator\":\"EMC\"}' "
-            "https://trng-b2share.eudat.eu/api/deposition/" + dep + "/commit?access_token=" + token)
-        commit = json.loads(commit_deposition)
-        record = commit['location']
-        url = "https://trng-b2share.eudat.eu" + record
-        #
-        #
-        #
-        # Commit deposition end
-        pids = commands.getoutput("curl -k -s " + url + "?access_token=" + token +
-                                  " | python -mjson.tool | grep PID | awk '{print $2}'").rsplit("\n")
-        for p in pids:
-            pid = p.strip(',')
-########################################################################################################################
-########################################################################################################################
-        '''
         if b2user == "" or b2user is None:
             login()
         else:
             pid = datafile
-            pid = pid.split(',')
+            metadata = metadata.split(',')
             line = ""
             if metadata is not None:
-                metafile = commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " " + metadata)
-                metaf = open('metafile.csv', 'w')
-                metaf.write(metafile)
-                metaf.close()
-                filemeta = "metafile.csv"
+                for m in metadata:
+                    mfile = m.replace('[', '').replace(']', '').replace('"', '').replace(' ', '')
+                    metafile = commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " " + mfile[1:])
+                    metaf = open('metafile.csv', 'w')
+                    metaf.write(metafile)
+                    metaf.close()
+                    filemeta = "metafile.csv"
             else:
                 createMetadata(request, datafile)
                 filemeta = "meta.txt"
                 commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
                         server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt")
-            for p in pid:
-                with open(filemeta, 'rb') as csvfile:
-                    count = 0
-                    reader = csv.DictReader(csvfile)
-                    cnt = 0
-                    # if metadata is None:
-                    #     commands.getoutput(
-                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                    #         b2user.replace('@', '')+"#pid> \""+pid+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    #     commands.getoutput(
-                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                    #         b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    #     commands.getoutput(
-                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                    #         b2user.replace('@', '')+"#sample_id> \"None\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    #     commands.getoutput(
-                    #         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                    #         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                    #         b2user.replace('@', '')+"#meta> \"No metadata\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    #     cnt += 1
-                    # else:
-                    for row in reader:
+            with open(filemeta, 'rb') as csvfile:
+                count = 0
+                reader = csv.DictReader(csvfile)
+                cnt = 0
+                for row in reader:
+                    for p in pid.split(','):
+                        data = p.replace('[', '').replace(']', '').replace("'", "").replace('"', '').replace(' ', '')[1:]
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                             b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#pid> \""+p.replace('[', '').replace(']', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                            b2user.replace('@', '')+"#pid> \""+data+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput(
+                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    if filemeta == "meta.txt":
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                             b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                        if filemeta == "meta.txt":
+                            b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    else:
+                        for m in metadata:
+                            mfile = m.replace('[', '').replace(']', '').replace('"', '').replace("'", "").replace(' ', '')
                             commands.getoutput(
                                 "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                                 b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                        else:
-                            commands.getoutput(
-                                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                b2user.replace('@', '')+"#meta> \""+metadata+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                        for (k, v) in row.items():
-                            for h in range(0, len(k.split('\t'))):
-                                if k.split('\t')[h] != "":
-                                    value = v.split('\t')[h]
-                                    header = k.split('\t')[h]
-                                    commands.getoutput(
-                                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                        b2user.replace('@', '')+"#"+header.replace('"', '')+"> \""+value.replace('"', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                        count += 1
-                        cnt += 1
+                                b2user.replace('@', '')+"#meta> \""+mfile[1:]+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    for (k, v) in row.items():
+                        for h in range(0, len(k.split('\t'))):
+                            if k.split('\t')[h] != "":
+                                value = v.split('\t')[h]
+                                header = k.split('\t')[h]
+                                commands.getoutput(
+                                    "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                                    b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                    b2user.replace('@', '')+"#"+header.replace('"', '')+"> \""+value.replace('"', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    count += 1
+                    cnt += 1
             commands.getoutput("rm metafile.csv")
             commands.getoutput("rm meta.txt")
         return HttpResponseRedirect('/')
@@ -383,29 +287,13 @@ def get_input_data(api, server):
     gi = GalaxyInstance(url=server, key=api)
     history_id = get_history_id(api, server)
     hist_contents = gi.histories.show_history(history_id, contents=True)
-    input1 = []
-    input2 = []
-    input3 = []
-    input4 = []
     inputs = []
     datacount = 0
     datasets = [dataset for dataset in hist_contents if not dataset['deleted']]
     for dataset in datasets:
-        # inputs.append(dataset['id'])
-        if dataset['hid'] == 1:
-            datacount = 1
-            input1.append(dataset['id'])
-        elif dataset['hid'] == 2:
-            datacount = 2
-            input2.append(dataset['id'])
-        elif dataset['hid'] == 3:
-            datacount = 3
-            input3.append(dataset['id'])
-        elif dataset['hid'] == 4:
-            datacount = 4
-            input4.append(dataset['id'])
-    # return inputs
-    return {'input1': input1, 'input2': input2, 'input3': input3, 'input4': input4, 'datacount': datacount}
+        inputs.append(dataset['id'])
+        datacount+=1
+    return inputs, datacount
 
 
 """
@@ -515,10 +403,6 @@ def upload(request):
             history_id = get_history_id(api, server)
         else:
             pass
-    """
-    Variables for getting the input files.
-    These are used in the for loops to get to the id's of the datasets
-    """
     inputs = {}
     inputs2 = {}
     if len(filter(None, files)) <= 0:
@@ -571,6 +455,7 @@ def upload(request):
                         gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
                 dfile.close()
                 commands.getoutput("rm " + dfile.name)
+                commands.getoutput("rm " + tfile.name)
         else:
             for file in files:
                 nfile = str(file).split('/')
@@ -616,8 +501,8 @@ def upload(request):
                         gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
                         dfile.close()
                         commands.getoutput("rm " + dfile.name)
-            commands.getoutput("rm " + tfile.name)
-            commands.getoutput("rm " + dfile.name)
+                commands.getoutput("rm " + tfile.name)
+                commands.getoutput("rm " + dfile.name)
             for meta in mfiles:
                 mfile = str(meta).split('/')
                 mfilename = mfile[len(mfile)-1]
@@ -632,7 +517,6 @@ def upload(request):
                     with open("input_" + mfilename, "r") as metadatafile:
                         if control != "[]" or test != "[]":
                             with open("input_classmeta.txt", "w") as nmeta:
-                                # groups = True
                                 for l in metadatafile:
                                     if linenr > 0:
                                         if linenr in samples_a:
@@ -665,28 +549,9 @@ def upload(request):
                 if jsonwf["steps"][str(i)]["name"] == "Input dataset":
                     label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
                     mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
-            inputfiles = get_input_data(api, server)
-            # for k,v in mydict.items():
-            #     for i in range(0, len(inputfiles)):
-            #         if i == in_count:
-            #             datamap[v] = {'src': "hda", 'id': inputfiles[i]}
-            #     in_count+=1
-                # datamap[v] = {'src': "hda", 'id': get_input_data(api, server)['input%s'%(str(in_count))][0]}
-            # Find a more generic label to use with the Galaxy workflow
-            in1 = gi.workflows.get_workflow_inputs(workflowid, label='VCF')[0]
-            if get_input_data(api, server)['datacount'] >= 2:
-                in2 = gi.workflows.get_workflow_inputs(workflowid, label='PED')[0]
-            elif get_input_data(api, server)['datacount'] >= 3:
-                in3 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
-            for c in range(0, get_input_data(api, server)['datacount']):
-                if c == 0:
-                    datamap[in1] = {'src': "hda", 'id': get_input_data(api, server)['input1'][0]}
-                elif c >= 1:
-                    datamap[in2] = {'src': "hda", 'id': get_input_data(api, server)['input2'][0]}
-                elif c >= 2:
-                    datamap[in3] = {'src': "hda", 'id': get_input_data(api, server)['input3'][0]}
-                elif c >= 3:
-                    datamap[in4] = {'src': "hda", 'id': get_input_data(api, server)['input4'][0]}
+            for k,v in mydict.items():
+                datamap[v] = {'src': "hda", 'id': get_input_data(api, server)[0][in_count]}
+                in_count+=1
             gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
             gi.workflows.export_workflow_to_local_path(workflowid, "", True)
             inputs = get_output(api, server, workflowid)
@@ -721,7 +586,6 @@ def upload(request):
                             username.replace('@', '')+"#sample_id> ALL } }' -H 'Accept: text/plain,*/*;q=0.9'")
                 commands.getoutput("rm " + new_name)
                 i+=1
-
             outputs = get_output(api, server, workflowid)
             o=0
             for outname in outputs[3]:
@@ -747,13 +611,6 @@ def upload(request):
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                         username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
                         username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    
-                    # if samples_a != "[]" or samples_b != "[]":
-                    #     for s in samples_a and samples_b:
-                    #         commands.getoutput(
-                    #             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                    #             username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                    #             username.replace('@', '')+"#sample_id> \""+ s +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     if samples == "[]":
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
@@ -778,8 +635,7 @@ def upload(request):
                             username.replace('@', '')+"#workflowid> \""+ workflowid +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
             commands.getoutput("rm input_test")
             commands.getoutput("rm " + new_name)
-
-            return render_to_response('output.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid, 'server': server})
+            return render_to_response('results.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid, 'server': server})
         else:
             resultid = uuid.uuid1()
             outputs = get_output(api, server, workflowid)
@@ -832,48 +688,6 @@ def sha1sum(filename, blocksize=65536):
 
 
 """
-Show the results that are stored in the Galaxy history.
-Select a history and click the see results button.
-"""
-# @csrf_exempt
-# def output(request):
-#     if request.session.get('api') is None:
-#         return HttpResponseRedirect("/")
-#     else:
-#         server = request.session.get('server')
-#         api = request.session.get('api')
-#         gi = GalaxyInstance(url=server, key=api)
-#         workflow = request.POST.get('workflowid')
-#         b2user = request.session.get('username')
-#         b2pass = request.session.get('password')
-#         storage = request.session.get('storage')
-#         if request.method == 'POST':
-#             historyid = request.POST.get('history')
-#             pid = request.POST.get('pid')
-#             #Variables for getting the input files.
-#             inputs = []
-#             input_ids = []
-#             #Variables for getting the output files.
-#             output = []
-#             hist = gi.histories.show_history(historyid)
-#             state = hist['state_ids']
-#             dump = json.dumps(state)
-#             status = json.loads(dump)
-#             files = status['ok']
-#             for o in files:
-#                 oug = gi.datasets.show_dataset(o, deleted=False, hda_ldda='hda')
-#                 if "input_" in oug['name']:
-#                     inputs.append(oug['id'])
-#                 else:
-#                     output.append(oug)
-#             for i in inputs:
-#                 iug = gi.datasets.show_dataset(i, deleted=False, hda_ldda='hda')
-#                 input_ids.append(iug)
-#             ug_context = {'outputs': output, 'inputs': input_ids, 'hist': hist, 'server': server}
-#             return render(request, 'output.html', ug_context)
-
-
-"""
 Show results that are stored in Owncloud.
 This is based on the search results in myFAIR.
 """
@@ -891,9 +705,7 @@ def show_results(request):
     wf = False
     if request.method == 'POST':
         group = request.POST.get('group')
-        # group = group.split(',')
         resultid = request.POST.get('resultid')
-        # resultid = resultid.split(',')        
         request.session['stored_results'] = request.POST
         return render_to_response('results.html', context={'outputs': out})
     else:
@@ -949,6 +761,7 @@ def show_results(request):
         return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow, 
                         'storage': storage, 'resultid': resid, 'workflowid': wid})
 
+
 """
 Remove session to log out.
 """
@@ -970,10 +783,8 @@ def get_output(api, server, workflowid):
         gi = GalaxyInstance(url=server, key=api)
         workflow = workflowid
         historyid = get_history_id(api, server)
-        #Variables for getting the input files.
         inputs = []
         input_ids = []
-        #Variables for getting the output files.
         outputs = []
         hist = gi.histories.show_history(historyid)
         state = hist['state_ids']
@@ -1063,23 +874,7 @@ def rerun_analysis(request):
                 label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
                 mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
         for k,v in mydict.items():
+            datamap[v] = {'src': "hda", 'id': get_input_data(api, server)[0][in_count]}
             in_count+=1
-            datamap[v] = {'src': "hda", 'id': get_input_data(api, server)['input%s'%(str(in_count))][0]}
-        # in1 = gi.workflows.get_workflow_inputs(workflowid, label='VCF')[0]
-        # if len(urls) >= 2:
-        #     in2 = gi.workflows.get_workflow_inputs(workflowid, label='PED')[0]
-        # elif len(urls) >= 3:
-        #     in3 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
-        # elif len(urls) >= 4:
-        #     in4 = gi.workflows.get_workflow_inputs(workflowid, label='None')[0]
-        # for c in range(0, len(urls)):
-        #     if c == 0:
-        #         datamap[in1] = {'src': "hda", 'id': get_input_data(api, server)['input1'][0]}
-        #     elif c >= 1:
-        #         datamap[in2] = {'src': "hda", 'id': get_input_data(api, server)['input2'][0]}
-        #     elif c >= 2:
-        #         datamap[in3] = {'src': "hda", 'id': get_input_data(api, server)['input3'][0]}
-        #     elif c >= 3:
-        #         datamap[in4] = {'src': "hda", 'id': get_input_data(api, server)['input4'][0]}
         gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
     return HttpResponseRedirect("/")

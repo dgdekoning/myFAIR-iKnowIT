@@ -153,3 +153,4 @@ Follow these steps to run the analysis shown in the result page again:
 2. A cat will appear to show that the analysis is running.
 3. After the files are send to Galaxy a checkmark will appear and you will be redirected the homepage.
 4. Visit the Galaxy page to see the analysis.
+

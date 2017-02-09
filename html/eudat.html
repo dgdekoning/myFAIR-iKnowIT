@@ -20,8 +20,10 @@
     <button id="index_buttons" onclick="document.eudat.submit()">See Files</button>
     <br />
     <br />
-    <form action="/eudat/" method="post" name="files_eudat">
+    <form action="/eudat/" id="eudat" method="post" name="files_eudat">
         <input type="hidden" name="selected_folder" value="{{ selected }}">
+        <input type="hidden" id="datalist" name="datalist" value="">
+        <input type="hidden" id="metalist" name="metalist" value="">
         <table>
             <thead>
             <th>Files</th>
@@ -32,16 +34,33 @@
                 <tr>
                     <td>{{ file }}</td>
                     <td>
-                        <input type="checkbox" name="{{ file }}" value="{{ file }}">
+                        <input type="checkbox" name="d" value="{{ file }}">
                     </td>
                     <td>
-                        <input type="checkbox" name="{{ file }}" value="m">
+                        <input type="checkbox" name="m" value="{{ file }}">
                     </td>
                 </tr>
             {% endfor %}
         </table>
+        <script type="text/javascript" charset="utf-8">
+            function AddPostData() {
+                var datafilelist = new Array;
+                var metafilelist = new Array;
+                $("input:checkbox[name=d]:checked").each(function(){
+                    datafilelist.push($(this).val());
+                });
+                $("input:checkbox[name=m]:checked").each(function(){
+                    metafilelist.push($(this).val());
+                });
+                var datalist = JSON.stringify(datafilelist);
+                var metalist = JSON.stringify(metafilelist);
+                var formInfo = document.forms['files_eudat'];
+                formInfo.datalist.value = datafilelist
+                formInfo.metalist.value = metalist
+            }
+        </script>
         {% if files != "" and files is not None %}
-            <button id="index_buttons" onclick="document.files_eudat.submit()">Make Turtle</button><br />
+            <button id="index_buttons" onclick="AddPostData()">Make Turtle</button><br />
         {% endif %}
         <br />
     </form>

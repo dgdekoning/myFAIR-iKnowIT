@@ -25,7 +25,6 @@ urlpatterns = [
     url(r'^login', views.login),
     url(r'^logout$', views.logout),
     url(r'^upload', views.upload),
-    # url(r'^out', views.output),
     url(r'^eudat', views.eudat),
     url(r'^turtle', views.turtle),
     url(r'^samples', views.samples),

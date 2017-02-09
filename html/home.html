@@ -3,11 +3,9 @@
 
 {% block content %}
 <div class="container">
-    <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
         <a class="navbar-brand" href="http://www.erasmusmc.nl/" target="_blank">
             <img src="{% static 'img/logo-erasmus.jpg' %}" alt="" class="img-thumbnail" width="154" height="136">
-            <!--<img src="{% static 'img/logo-dtl.png' %}" alt="" class="img-thumbnail" width="154" height="136" align="right">-->
         </a>
     </div>
     <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
@@ -59,7 +57,6 @@
                 <div class="panel-body">
                     <div class="row" id="sampleid">
                         <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">Sample</button></div>
-                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
                         <div class="col-md-4">
                             <input class="form-control" type="text" id="sampleidOption" list="sampleidDatalist" placeholder="e.g. HG002_NA24385_son" autocomplete="off">
                             <datalist id="sampleidDatalist"></datalist>
@@ -67,7 +64,6 @@
                     </div>
                     <div class="row" id="group">
                         <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">group</button></div>
-                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
                         <div class="col-md-4">
                             <input class="form-control" type="text" id="groupOption" list="groupDatalist" placeholder="e.g. {{ user }}" autocomplete="off">
                             <datalist id="groupDatalist"></datalist>
@@ -75,7 +71,6 @@
                     </div>
                     <div class="row" id="sex">
                         <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">Sex</button></div>
-                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
                         <div class="col-md-4">
                             <input class="form-control" type="text" id="sexOption" list="sexDatalist" placeholder="e.g. male" autocomplete="off">
                             <datalist id="sexDatalist"></datalist>
@@ -83,7 +78,6 @@
                     </div>
                     <div class="row" id="disease">
                         <div class="col-md-4"><button type="button" class="btn btn-voilet btn-lg btn-block">Disease</button></div>
-                        <!--<div class="col-md-4"><button type="button" class="btn btn-default btn-lg btn-block"><i>type</i></button></div>-->
                         <div class="col-md-4">
                             <input class="form-control" type="text" id="diseaseOption" list="diseaseDatalist" placeholder="e.g. Parkinsons Disease" autocomplete="off">
                             <datalist id="diseaseDatalist"></datalist>
@@ -106,7 +100,6 @@
             </div>
             <div class="alert alert-info fade in" id="infoPanel">
             </div>
-
             <div class="panel panel-info" id="step3">
                 <div class="panel-heading">
                     <h3 class="panel-title">Step 3 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> Result:</h3>
@@ -130,6 +123,7 @@
                     <table class="table table-striped" id="results_table">
                     </table>
                     <div id="galaxy"></div>
+                    <br />
                     <div id="loading" style="display:none" align="center">
                         <img id="loadingImage" src="{% static 'img/loading.gif' %}" width="375" height="187.5">
                         <br />
@@ -166,22 +160,6 @@
 <!-- /.container -->
 {% block contentwork %}
 <div id="select" style="display: none;">
-    <!--<form action="out" method="post" name="result">
-        <p>Select a history to see the results</p>
-        <input type="hidden" name="api" id="api" value={{api}}>
-        <input type="hidden" name="b2user" id="b2user" value={{b2user}}>
-        <input type="hidden" name="b2pass" id="b2pass" value={{b2pass}}>
-        <select id="history" name="history" class="select-workflow">
-            <optgroup label="Histories">
-                {%for history in histories %}
-                <option value="{{ history.id }}">{{ history.name }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-        <br />
-        <br />
-        <button id="index_buttons" onclick="document.result.submit()">See results</button>
-    </form>-->
     <button id="index_buttons" onclick="getoutput()">Show results</button>
 </div>
 {% endblock %}

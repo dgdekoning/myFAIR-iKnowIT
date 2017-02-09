@@ -21,7 +21,6 @@ $(document).ready(function () {
         templQuerySize += 1;
     }
     template.setAttribute("size", templQuerySize);
-    // setTimeout(doGet, 5000);
 });
 document.getElementById("template").onchange = function () {
     $("#sampleid").addClass('hidden');
@@ -271,6 +270,7 @@ function fillTable(result) {
         $("#results_table").addClass('hidden');
     }
 }
+
 function postdata(g) {
     document.getElementById('loading').style.display = "block";
     var workflowid = document.getElementById('workflow').value;
