@@ -171,7 +171,7 @@ def eudat(request):
                 if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                     new = f.replace('/owncloud/remote.php/webdav/'+group, '').replace('/', '')
                     files.append(new)
-                else:
+                elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
                     new = f.replace('/remote.php/webdav/'+group, '').replace('/', '')
                     files.append(new)
             files = filter(None, files)
@@ -222,8 +222,12 @@ def turtle(request):
             else:
                 createMetadata(request, datafile)
                 filemeta = "meta.txt"
-                commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
-                        server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt")
+                if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                    commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
+                            server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt")
+                elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                    commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
+                            server + "/remote.php/webdav/" + group +  "/meta.txt")
             with open(filemeta, 'rb') as csvfile:
                 count = 0
                 reader = csv.DictReader(csvfile)
@@ -240,10 +244,16 @@ def turtle(request):
                         b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
                         b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     if filemeta == "meta.txt":
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                            commands.getoutput(
+                                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                            commands.getoutput(
+                                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                b2user.replace('@', '')+"#meta> \""+server + "/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     else:
                         for m in metadata:
                             mfile = m.replace('[', '').replace(']', '').replace('"', '').replace("'", "").replace(' ', '')
@@ -352,6 +362,7 @@ def upload(request):
     server = request.session.get('server')
     api = request.session.get('api')
     gi = GalaxyInstance(url=server, key=api)
+    storage = request.session.get('storage')
     selected = request.POST.get('selected')
     selectedmeta = request.POST.get('meta')
     token = request.POST.get('token')
@@ -564,13 +575,22 @@ def upload(request):
                 new_name = sha1sum(old_name) + "_" + old_name
                 os.rename(old_name, new_name)
                 for g in groups:
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
-                        server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                            storage +"/"+  g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                         username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
@@ -596,13 +616,22 @@ def upload(request):
                 new_name = sha1sum(old_name) + "_" + old_name
                 os.rename(old_name, new_name)
                 for g in groups:
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
-                        server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                            storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                         username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
@@ -623,8 +652,12 @@ def upload(request):
                     new_name = sha1sum(filename) + "_" + filename
                     os.rename(filename, new_name)
                     for g in groups:
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                        server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
+                        if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                            commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
+                        elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                            commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                            storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                             username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
@@ -648,13 +681,22 @@ def upload(request):
                 new_name = sha1sum(old_name) + "_" + old_name
                 os.rename(old_name, new_name)
                 for g in groups:
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                        server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/" + g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                            storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+ storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                         username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
