@@ -72,10 +72,18 @@ def index(request):
             b2pass = request.session.get('password')
             server = request.session.get('server')
             storage = request.session.get('storage')
+            folders = []
             token = "ygcLQAJkWH2qSfawc39DI9tGxisceVSTgw9h2Diuh0z03QRx9Lgl91gneTok"
             b2folders = commands.getoutput(
                 "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
                 " '"+ storage +"' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+            for b in b2folders:
+                if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                    new = b.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
+                    folders.append(new)
+                elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                    new = b.replace('/remote.php/webdav/', '').replace('/', '')
+                    folders.append(new)
             b2folders = filter(None, b2folders)
             if not b2folders:
                 err = "Credentials are invalid. Please try again."
@@ -92,7 +100,7 @@ def index(request):
             newhist = gi.histories.show_history(newhistid)
             return render(request, 'home.html',
                                       context={'workflows': workflows, 'histories': his, 'user': username, 'api': api,
-                                               'b2user': b2user, 'b2pass': b2pass, 'server': server, 'storage': storage})
+                                               'b2user': b2user, 'b2pass': b2pass, 'server': server, 'storage': storage, 'folders': folders})
     except ConnectionError as err:
         err = "Invalid API Key"
         request.session.flush()
@@ -863,6 +871,101 @@ def get_output(api, server, workflowid):
                 out_name.append(out["name"])
                 out_url.append(out["download_url"])
         return in_url, in_name, out_url, out_name
+
+
+"""
+Store results from Galaxy history to Owncloud/B2DROP.
+Create new triples.
+"""
+@csrf_exempt
+def output(request):
+    if request.session.get('api') is None:
+        return HttpResponseRedirect("/")
+    else:
+        server = request.session.get('server')
+        api = request.session.get('api')
+        gi = GalaxyInstance(url=server, key=api)
+        workflow = request.POST.get('workflowid')
+        b2user = request.session.get('username')
+        b2pass = request.session.get('password')
+        storage = request.session.get('storage')
+        groups = request.POST.get('folder')
+        url = []
+        names = []
+        resultid = uuid.uuid1()
+        if request.method == 'POST':
+            historyid = request.POST.get('history')
+            pid = request.POST.get('pid')
+            #Variables for getting the input files.
+            inputs = []
+            input_ids = []
+            #Variables for getting the output files.
+            output = []
+            hist = gi.histories.show_history(historyid)
+            state = hist['state_ids']
+            dump = json.dumps(state)
+            status = json.loads(dump)
+            files = status['ok']
+            for o in files:
+                oug = gi.datasets.show_dataset(o, deleted=False, hda_ldda='hda')
+                if "input_" in oug['name']:
+                    if oug['visible']:
+                        url.append(server + oug['download_url'])
+                        names.append(oug['name'])
+                    inputs.append(oug['id'])
+                else:
+                    if oug['visible']:
+                        url.append(server + oug['download_url'])
+                        names.append(oug['name'])
+                    output.append(oug)
+            for i in inputs:
+                iug = gi.datasets.show_dataset(i, deleted=False, hda_ldda='hda')
+                input_ids.append(iug)
+            count = 0
+            for u in url:
+                cont = commands.getoutput("curl -s -k " + u)
+                old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + names[count]
+                with open(old_name, "w") as newfile:
+                    newfile.write(cont)
+                new_name = sha1sum(newfile.name) + "_" + old_name
+                os.rename(old_name, new_name)
+                count+=1
+                for g in groups.split(','):
+                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + new_name + '\'' + " " + 
+                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            b2user.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
+                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + new_name + '\'' + " " + 
+                            storage +"/"+  g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                        commands.getoutput(
+                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                            b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            b2user.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput(
+                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        b2user.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput(
+                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        b2user.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput(
+                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        b2user.replace('@', '')+"#workflow> \""+ hist['name'] +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput(
+                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        b2user.replace('@', '')+"#workflowid> \""+ "0" +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                commands.getoutput("rm " + new_name)
+            ug_context = {'outputs': output, 'inputs': input_ids, 'hist': hist, 'server': server}
+            return render(request, 'output.html', ug_context)
 
 
 def read_workflow(filename):

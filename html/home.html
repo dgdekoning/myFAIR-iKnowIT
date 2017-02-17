@@ -159,8 +159,33 @@
 </div>
 <!-- /.container -->
 {% block contentwork %}
-<div id="select" style="display: none;">
+<div id="show_results" style="display: none;">
     <button id="index_buttons" onclick="getoutput()">Show results</button>
+</div>
+<div id="select" style="display: block;">
+    <form action="out" method="post" name="result">
+        <p>Select a history and an Owncloud folder:</p>
+        <input type="hidden" name="api" id="api" value={{api}}>
+        <input type="hidden" name="b2user" id="b2user" value={{b2user}}>
+        <input type="hidden" name="b2pass" id="b2pass" value={{b2pass}}>
+        <select id="history" name="history" class="select-workflow">
+            <optgroup label="Histories">
+                {%for history in histories %}
+                <option value="{{ history.id }}">{{ history.name }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+        <select id="folder" name="folder" class="select-workflow">
+            <optgroup label="Histories">
+                {%for folder in folders %}
+                <option value="{{ folder }}">{{ folder }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+        <button id="index_buttons" onclick="document.result.submit()">Send history to Owncloud</button>
+    </form>
+    <br />
+    <br />
 </div>
 {% endblock %}
 <br />

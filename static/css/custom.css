@@ -161,7 +161,7 @@ fieldset[disabled] .btn-red.active {
   color: #21317F;
   background-color: #ffffff;
 }
-#select {
+#select, #show_results {
     width: 100%;
     align: center;
     text-align: center;

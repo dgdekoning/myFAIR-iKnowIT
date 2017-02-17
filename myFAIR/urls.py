@@ -32,4 +32,5 @@ urlpatterns = [
     url(r'^delete', views.delete),
     url(r'^results', views.show_results),
     url(r'^rerun', views.rerun_analysis),
+    url(r'^out', views.output),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -222,7 +222,8 @@ function fillTable(result) {
     };
     var hasCol = hasColumn("#results_table thead", "workflow");
     if(hasCol) {
-        document.getElementById('select').style.display = "block";
+        document.getElementById('show_results').style.display = "block";
+        document.getElementById('select').style.display = "none";
         $('#galaxy').html(
             '<p>Select a result and press the Show results button</p>'
         );
