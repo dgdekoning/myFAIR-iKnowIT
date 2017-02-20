@@ -5,6 +5,7 @@
   * [Run the myFAIR analysis](#run-the-myfair-analysis)
   * [See results](#see-results)
   * [Using GEO files](#using-geo)
+  * [Store your history](#store-history)
   * [Run the analysis again](#rerun-analysis)
 
 For this testcase we are using variant selection by GEMINI analysis using genome in the bottle data. Specifically, we will be using Ashkenazim Father-Mother-Son trio data from the Personal Genome Project. You can download the down sampled version of the dataset created by the GEMINI team from a GIAB trio dataset.
@@ -48,7 +49,7 @@ Everything is already pre-installed and can be used after following these steps 
 1. Download the Virtual Machine [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/Qr5Nu6CBotyvG1Z). **(The size of the Virtual Machine will be large due to the annotation files needed for Gemini, please make sure you have enough free space to run the Virtual Machine)**
 2. Add the Virtual Machine and start the Virtual Machine (Password is "fair@emc")
 3. Open the terminal and start the Fuseki Server by typing: **.local/apache-jena-fuseki-2.4.1/fuseki start**
-4. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page. To see if the fuseki sevrer is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
+4. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page. To see if the fuseki server is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
 5. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
 After these steps you can run the myFAIR analysis.
 
@@ -137,7 +138,7 @@ To split GEO files and send only specific samples to a new Galaxy history follow
 15. Visit the Galaxy page to view the uploaded and to start working with them.
 
 # <a name="see-results"></a> See results
-The following steps can be used to view the results of your histories.
+The following steps can be used to view the results of your analysis.
 
 1. Click on the "Get results from group" option.
 2. Enter the group name that you want to get the results from.
@@ -146,6 +147,15 @@ The following steps can be used to view the results of your histories.
 5. A new page will open with the input and output files  and the analysis details.
 6. Click on any of the "Download" buttons to download that file.
 
+# <a name="store-history"></a> Store your history
+myFAIR will not upload your results to Owncloud or B2DROP when there was no workflow used. In order to send your results to Owncloud or B2DROP to make them searchable follow these steps:
+
+1. Select the history you want to send to Owncloud.
+2. Select the folder you want to store the results in.
+3. Click on the "Send history to Owncloud" button.
+4. A new page will appear telling you the results are stored and are now searchable in myFAIR.
+5. Follow the "See results" steps to view your results.
+
 # <a name="rerun-analysis"></a> Run the analysis again
 Follow these steps to run the analysis shown in the result page again:
 
@@ -153,4 +163,3 @@ Follow these steps to run the analysis shown in the result page again:
 2. A cat will appear to show that the analysis is running.
 3. After the files are send to Galaxy a checkmark will appear and you will be redirected the homepage.
 4. Visit the Galaxy page to see the analysis.
-
