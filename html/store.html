@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<script>
+    window.onload = function(){
+        document.forms['store'].submit()
+    }
+</script>
+<form action="/store" method="post" id="store" name="store">
+    <input type="hidden" name="group" id="group" value="{{ group }}">
+    <input type="hidden" name="metadata" id="metadata" value="{{ metadata }}">
+    <input type="hidden" name="datafile" id="datafile" value="{{ datafiles }}">
+</form>
+<p>Triples are being stored...Please wait.
+{% endblock %}

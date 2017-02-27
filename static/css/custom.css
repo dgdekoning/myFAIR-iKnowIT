@@ -211,7 +211,27 @@ fieldset[disabled] .btn-red.active {
 #login th{
     padding-right: 3em;
 }
-
+/*#isa {
+    float: left;
+    padding: 10px;
+    margin-left: 20px;
+    background-color: #86CEF4;
+}
+#isa table {
+    color: #21317F;
+}
+#isa b {
+    padding-right: 3em;
+}
+#isa fieldset {
+    position: relative;
+}
+#isa input {
+    position: relative;
+    width: 100%;
+    left: 0;
+    right: 0;
+}*/
 #help {
     float: left;
     margin-left: 20px;

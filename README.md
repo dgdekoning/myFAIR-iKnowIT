@@ -73,8 +73,8 @@ In order to run the myFAIR analysis you need to follow these steps:
     * Select the folder where your datafiles are located and click "See files".
     * You will now see the two files you added to this folder in step 6.
     * Choose which file is your datafile (vcf file) and which file is your metadata (ped file).
-    * Click "Make Turtle" to start the creation of new triples and store them in the Fuseki server.
-    * If you are using the GEO data matrix, please choose the "datafile" option for all data matrix files you want to upload. If you do not have a metadata file, click "Make Turtle". If you already have a metadata file please select "metadata" for that file and then click "Make Turtle".
+    * Click "Store Triples" to start the creation of new triples and store them in the Fuseki server.
+    * If you are using the GEO data matrix, please choose the "datafile" option for all data matrix files you want to upload. If you do not have a metadata file, click "Store Triples". If you already have a metadata file please select "metadata" for that file and then click "Store Triples".
     * You will be send back to the homepage.
 
 10. Find your files or samples:
@@ -123,7 +123,7 @@ To split GEO files and send only specific samples to a new Galaxy history follow
 
 1. Download the GSE7621_series_matrix.txt files from ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE7nnn/GSE7621/matrix/
 2. Place the data matrix in a folder in B2DROP or bioinf-galaxian Owncloud.
-3. Index the data matrix by clicking on the Upload Files link. Then selecting the folder with the data matrix, then select the matrix file as a datafile and click on the "Make Turtle" button. (If you already have a metadata file based on the data matrix please select this file to be metadata. Step 4 will be skipped if you have selected this option.)
+3. Index the data matrix by clicking on the Upload Files link. Then selecting the folder with the data matrix, then select the matrix file as a datafile and click on the "Store Triples" button. (If you already have a metadata file based on the data matrix please select this file to be metadata. Step 4 will be skipped if you have selected this option.)
 4. The metadata will be created automatically and uploaded to the same folder as the data matrix. After this is done you will be redirected to the homepage.
 5. Select the "Get samples from group" option.
 6. Enter the name of the folder where the data matrix is located.

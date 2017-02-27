@@ -25,8 +25,8 @@ def login(request):
         server = request.POST.get('server')
         api = request.POST.get('api')
         storage = request.POST.get('storage')
-        b2user = request.POST.get('username')
-        b2pass = request.POST.get('password')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         if api != "":
             request.session['api'] = api
         else:
@@ -43,9 +43,9 @@ def login(request):
             err.append("No server selected")
             request.session.flush()
             return render_to_response('login.html', context={'error': err})
-        if b2user != "" and b2pass != "":
-            request.session['username'] = b2user
-            request.session['password'] = b2pass
+        if username != "" and password != "":
+            request.session['username'] = username
+            request.session['password'] = password
         else:
             err.append("No valid username or password")
             request.session.flush()
@@ -67,21 +67,15 @@ def index(request):
             login(request)
             return render_to_response('login.html', context={'error': err})
         else:
-            api = request.session.get('api')
-            b2user = request.session.get('username')
-            b2pass = request.session.get('password')
-            server = request.session.get('server')
-            storage = request.session.get('storage')
             folders = []
-            token = "ygcLQAJkWH2qSfawc39DI9tGxisceVSTgw9h2Diuh0z03QRx9Lgl91gneTok"
             b2folders = commands.getoutput(
-                "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
-                " '"+ storage +"' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                " '"+ request.session.get('storage') +"' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
             for b in b2folders:
-                if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                     new = b.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
                     folders.append(new)
-                elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
                     new = b.replace('/remote.php/webdav/', '').replace('/', '')
                     folders.append(new)
             b2folders = filter(None, b2folders)
@@ -89,9 +83,9 @@ def index(request):
                 err = "Credentials are invalid. Please try again."
                 request.session.flush()
                 return render_to_response('login.html', context={'error': err})
-            gi = GalaxyInstance(url=server, key=api)
+            gi = GalaxyInstance(url=request.session.get('server'), key=request.session.get('api'))
             user = gi.users.get_current_user()
-            username = user['username']
+            gusername = user['username']
             workflows = gi.workflows.get_workflows
             history = gi.histories.get_histories()
             hist = json.dumps(history)
@@ -99,8 +93,9 @@ def index(request):
             newhistid = his[0]['id']
             newhist = gi.histories.show_history(newhistid)
             return render(request, 'home.html',
-                                      context={'workflows': workflows, 'histories': his, 'user': username, 'api': api,
-                                               'b2user': b2user, 'b2pass': b2pass, 'server': server, 'storage': storage, 'folders': folders})
+                                      context={'workflows': workflows, 'histories': his, 'user': gusername, 'api': request.session.get('api'),
+                                               'username': request.session.get('username'), 'password': request.session.get('password'), 
+                                               'server': request.session.get('server'), 'storage': request.session.get('storage'), 'folders': folders})
     except ConnectionError as err:
         err = "Invalid API Key"
         request.session.flush()
@@ -143,26 +138,22 @@ def delete(request):
 
 
 """
-Get all folders and files from Owncloud/EUDAT to select what information needs to be 
-stored in the triple store.
+Select what files need to be stored in the triple store.
 """
 @csrf_exempt
-def eudat(request):
+def triples(request):
     if request.session.get('username') == "" or request.session.get('username') is None:
         return HttpResponseRedirect('/')
     else:
-        b2user = request.session.get('username')
-        b2pass = request.session.get('password')
-        storage = request.session.get('storage')
         b2folders = commands.getoutput(
-            "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
-            " '" + storage + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+            "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+            " '" + request.session.get('storage') + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
         folders = []
         for b in b2folders:
-            if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+            if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                 new = b.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
                 folders.append(new)
-            elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+            elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
                 new = b.replace('/remote.php/webdav/', '').replace('/', '')
                 folders.append(new)
         folders = filter(None, folders)
@@ -172,14 +163,14 @@ def eudat(request):
             group = request.POST.get('selected_folder')
         if group != "" and group is not None:
             b2files = commands.getoutput(
-                "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
-                " '"+ storage + "/" + group + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                " '"+ request.session.get('storage') + "/" + group + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
             files = []
             for f in b2files:
-                if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                     new = f.replace('/owncloud/remote.php/webdav/'+group, '').replace('/', '')
                     files.append(new)
-                elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
+                elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
                     new = f.replace('/remote.php/webdav/'+group, '').replace('/', '')
                     files.append(new)
             files = filter(None, files)
@@ -191,29 +182,29 @@ def eudat(request):
                 datalist = datalist.split(',')
                 metalist = metalist.split(',')
                 for d in datalist:
-                    datafiles.append(storage + "/" + group + "/" + d)
+                    datafiles.append(request.session.get('storage') + "/" + group + "/" + d)
                 for m in metalist:
-                    metadata.append(storage + "/" + group + "/" + m)
+                    metadata.append(request.session.get('storage') + "/" + group + "/" + m)
             if metadata or datafiles:
-                return render(request, 'turtle.html', context={'metadata': metadata, 'datafiles': datafiles, 'group': group})
-            return render(request, 'eudat.html', context={'folders': folders, 'files': files, 'selected': group})
-    return render(request, 'eudat.html', context={'folders': folders})
+                return render(request, 'store.html', context={'metadata': metadata, 'datafiles': datafiles, 'group': group})
+            return render(request, 'triples.html', context={'folders': folders, 'files': files, 'selected': group})
+    return render(request, 'triples.html', context={'folders': folders})
 
 
 """
 Read the metadata file and store all the information in the Fuseki triple store.
 """
 @csrf_exempt
-def turtle(request):
+def store(request):
     if request.method == 'POST':
-        b2user = request.session.get('username')
-        b2pass = request.session.get('password')
+        username = request.session.get('username')
+        password = request.session.get('password')
         server = request.session.get('server')
         storage = request.session.get('storage')
         group = request.POST.get('group')
         metadata = request.POST.get('metadata')
         datafile = request.POST.get('datafile')
-        if b2user == "" or b2user is None:
+        if username == "" or username is None:
             login()
         else:
             pid = datafile
@@ -222,7 +213,7 @@ def turtle(request):
             if metadata is not None:
                 for m in metadata:
                     mfile = m.replace('[', '').replace(']', '').replace('"', '').replace(' ', '')
-                    metafile = commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " " + mfile[1:])
+                    metafile = commands.getoutput("curl -s -k -u " + username + ":" + password + " " + mfile[1:])
                     metaf = open('metafile.csv', 'w')
                     metaf.write(metafile)
                     metaf.close()
@@ -231,10 +222,10 @@ def turtle(request):
                 createMetadata(request, datafile)
                 filemeta = "meta.txt"
                 if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-                    commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + "meta.txt" + '\'' + " " + 
                             server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt")
                 elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
-                    commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + "meta.txt" + '\'' + " " + 
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + "meta.txt" + '\'' + " " + 
                             server + "/remote.php/webdav/" + group +  "/meta.txt")
             with open(filemeta, 'rb') as csvfile:
                 count = 0
@@ -245,30 +236,30 @@ def turtle(request):
                         data = p.replace('[', '').replace(']', '').replace("'", "").replace('"', '').replace(' ', '')[1:]
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#pid> \""+data+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                            username.replace('@', '')+"#pid> \""+data+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        username.replace('@', '')+"#group_id> \""+group+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     if filemeta == "meta.txt":
                         if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                             commands.getoutput(
                                 "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                b2user.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                username.replace('@', '')+"#meta> \""+server + "/owncloud/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                         elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
                             commands.getoutput(
                                 "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                b2user.replace('@', '')+"#meta> \""+server + "/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                username.replace('@', '')+"#meta> \""+server + "/remote.php/webdav/" + group +  "/meta.txt"+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     else:
                         for m in metadata:
                             mfile = m.replace('[', '').replace(']', '').replace('"', '').replace("'", "").replace(' ', '')
                             commands.getoutput(
                                 "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                b2user.replace('@', '')+"#meta> \""+mfile[1:]+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                username.replace('@', '')+"#meta> \""+mfile[1:]+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     for (k, v) in row.items():
                         for h in range(0, len(k.split('\t'))):
                             if k.split('\t')[h] != "":
@@ -276,8 +267,8 @@ def turtle(request):
                                 header = k.split('\t')[h]
                                 commands.getoutput(
                                     "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                                    b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                                    b2user.replace('@', '')+"#"+header.replace('"', '')+"> \""+value.replace('"', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                                    username.replace('@', '')+"> { <http://127.0.0.1:3030/"+group+str(cnt)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                                    username.replace('@', '')+"#"+header.replace('"', '')+"> \""+value.replace('"', '')+"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     count += 1
                     cnt += 1
             commands.getoutput("rm metafile.csv")
@@ -360,39 +351,13 @@ def createMetadata(request, datafile):
     commands.getoutput("rm data.txt")
     return meta
 
-
 """
-Upload selected files to a new Galaxy history.
-Trim selected files if needed.
+Fill lists with group names, data files and metadata files.
 """
-@csrf_exempt
-def upload(request):
-    server = request.session.get('server')
-    api = request.session.get('api')
-    gi = GalaxyInstance(url=server, key=api)
-    storage = request.session.get('storage')
-    selected = request.POST.get('selected')
-    selectedmeta = request.POST.get('meta')
-    token = request.POST.get('token')
-    filetype = request.POST.get('filetype')
-    dbkey = request.POST.get('dbkey')
-    username = request.session.get('username')
-    password = request.session.get('password')
-    workflowid = request.POST.get('workflowid')
-    pid = request.POST.get('data_id')
-    metaid = request.POST.get('meta_id')
-    onlydata = request.POST.get('onlydata')
-    gurl = request.POST.get('datasets')
-    control = request.POST.get('samples')
-    test = request.POST.get('samplesb')
-    new_hist = request.POST.get('historyname')
-    group = request.POST.get('group')
+def get_selection(gselect, select, mselect):
+    groups = []
     files = []
     mfiles = []
-    select = selected.split(',')
-    mselect = selectedmeta.split(',')
-    gselect = group.split(',')
-    groups = []
     for g in gselect:
         groups.append(g.replace('[', '').replace('"', '').replace(']', ''))
     for s in select:
@@ -401,6 +366,13 @@ def upload(request):
     for m in mselect:
         if m.replace('[', '').replace('"', '').replace(']', '') not in mfiles:
             mfiles.append(m.replace('[', '').replace('"', '').replace(']', ''))
+    return files, mfiles, groups
+
+
+"""
+Create a new history when uploading data to Galaxy.
+"""
+def create_new_hist(gi, api, server, workflowid, files, new_hist):
     if workflowid != "0":
         if len(filter(None, files)) > 0:
             workflow = gi.workflows.show_workflow(workflowid)
@@ -422,140 +394,141 @@ def upload(request):
             history_id = get_history_id(api, server)
         else:
             pass
+    return history_id
+
+
+"""
+Create new data files based on the selected samples or send entire file
+"""
+def make_data_files(gi, files, username, password, control, test, history_id, filetype, dbkey):
+    for file in files:
+        nfile = str(file).split('/')
+        filename = nfile[len(nfile)-1]
+        cont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + file)
+        with open("input_all_" + filename, "w") as dfile:
+            dfile.write(cont)
+        with open("input_all_" + filename, "r") as tfile:
+            """
+            Trim file based on selected samples.
+            """
+            matrix = False
+            samples_a = []
+            samples_b = []
+            if control != "[]" or test != "[]":
+                with open("input_" + filename, "w") as ndfile:
+                    for line in tfile:
+                        if "!Sample_geo_accession" in line:
+                            line = line.split('\t')
+                            for x in range(0, len(line)):
+                                if line[x].replace('\n', '') in control:
+                                    samples_a.append(x)
+                                if line[x].replace('\n', '') in test:
+                                    samples_b.append(x)
+                        else:
+                            if "!series_matrix_table_begin" in line:
+                                matrix = True
+                                samples_a.append(0)
+                            if matrix:
+                                line = line.split('\t')
+                                for p in (p for p,x in enumerate(line) if p in samples_a):
+                                    if "!series_matrix_table_begin" not in line[p] and "!series_matrix_table_end" not in line[p]:
+                                        ndfile.write(line[p].replace('\"', '').replace('\n', '') + '\t')
+                                for pb in (pb for pb,x in enumerate(line) if pb in samples_b):
+                                    if "!series_matrix_table_begin" not in line[pb] and "!series_matrix_table_end" not in line[pb]:
+                                        ndfile.write(line[pb].replace('\"', '').replace('\n', '') + '\t')
+                                ndfile.write('\n')
+                            else:
+                                line.strip()
+                if len(samples_a) > 1 or len(samples_b) > 1:
+                    gi.tools.upload_file(ndfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
+                ndfile.close()
+                commands.getoutput("rm " + ndfile.name)
+            else:
+                gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
+        dfile.close()
+        commands.getoutput("rm " + dfile.name)
+        commands.getoutput("rm " + tfile.name)
+
+
+"""
+Create new metadata files based on the selected samples or send entire file
+"""
+def make_meta_files(gi, mfiles, username, password, control, test, history_id):
+    for meta in mfiles:
+        mfile = str(meta).split('/')
+        mfilename = mfile[len(mfile)-1]
+        if meta == "No metadata":
+            pass
+        else:
+            mcont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + meta)
+            with open("input_" + mfilename, "w") as metfile:
+                metfile.write(mcont)
+            metfile.close()
+            linenr = 0
+            with open("input_" + mfilename, "r") as metadatafile:
+                if control != "[]" or test != "[]":
+                    with open("input_classmeta.txt", "w") as nmeta:
+                        for l in metadatafile:
+                            columns = l.split('\t')
+                            if len(columns) >= 2:
+                                if linenr > 0:
+                                    if len(columns) >= 2:
+                                        if columns[1] in control:
+                                            l = l.replace('\n', '')
+                                            nmeta.write(l + "\tA")
+                                            nmeta.write("\n")
+                                        if columns[1] in test:
+                                            l = l.replace('\n', '')
+                                            nmeta.write(l + "\tB")
+                                            nmeta.write("\n")
+                                else:
+                                    l = l.replace('\n', '')
+                                    nmeta.write(l + "\tclass_id" + "\n")
+                            linenr += 1
+                    gi.tools.upload_file(nmeta.name, history_id, file_type='auto', dbkey='?', prefix=file)
+                    commands.getoutput("rm " + nmeta.name)
+                    commands.getoutput("rm " + metadatafile.name)
+                else:
+                    gi.tools.upload_file(metadatafile.name, history_id, file_type='auto', dbkey='?', prefix=file)
+                    commands.getoutput("rm " + metadatafile.name)
+
+
+"""
+Upload selected files to a new Galaxy history.
+"""
+@csrf_exempt
+def upload(request):
+    gi = GalaxyInstance(url=request.session.get('server'), key=request.session.get('api'))
+    selected = request.POST.get('selected')
+    selectedmeta = request.POST.get('meta')
+    token = request.POST.get('token')
+    filetype = request.POST.get('filetype')
+    dbkey = request.POST.get('dbkey')
+    workflowid = request.POST.get('workflowid')
+    pid = request.POST.get('data_id')
+    metaid = request.POST.get('meta_id')
+    onlydata = request.POST.get('onlydata')
+    gurl = request.POST.get('datasets')
+    control = request.POST.get('samples')
+    test = request.POST.get('samplesb')
+    new_hist = request.POST.get('historyname')
+    group = request.POST.get('group')
+    select = selected.split(',')
+    mselect = selectedmeta.split(',')
+    gselect = group.split(',')
+    files = get_selection(gselect, select, mselect)[0]
+    mfiles = get_selection(gselect, select, mselect)[1]
+    groups = get_selection(gselect, select, mselect)[2]
+    history_id = create_new_hist(gi, request.session.get('api'), request.session.get('server'), workflowid, files, new_hist)
     inputs = {}
-    inputs2 = {}
     if len(filter(None, files)) <= 0:
         return HttpResponseRedirect("/")
     else:
         if onlydata == "true":
-            for file in files:
-                nfile = str(file).split('/')
-                filename = nfile[len(nfile)-1]
-                cont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + file)
-                with open("input_all_" + filename, "w") as dfile:
-                    dfile.write(cont)
-                with open("input_all_" + filename, "r") as tfile:
-                    """
-                    Trim file based on selected samples.
-                    """
-                    matrix = False
-                    samples_a = []
-                    samples_b = []
-                    if control != "[]" or test != "[]":
-                        with open("input_" + filename, "w") as ndfile:
-                            for line in tfile:
-                                if "!Sample_geo_accession" in line:
-                                    line = line.split('\t')
-                                    for x in range(0, len(line)):
-                                        if line[x].replace('\n', '') in control:
-                                            samples_a.append(x)
-                                        if line[x].replace('\n', '') in test:
-                                            samples_b.append(x)
-                                else:
-                                    if "!series_matrix_table_begin" in line:
-                                        matrix = True
-                                        samples_a.append(0)
-                                    if matrix:
-                                        line = line.split('\t')
-                                        for p in (p for p,x in enumerate(line) if p in samples_a):
-                                            if "!series_matrix_table_begin" not in line[p] and "!series_matrix_table_end" not in line[p]:
-                                                ndfile.write(line[p].replace('\"', '').replace('\n', '') + '\t')
-                                        for pb in (pb for pb,x in enumerate(line) if pb in samples_b):
-                                            if "!series_matrix_table_begin" not in line[pb] and "!series_matrix_table_end" not in line[pb]:
-                                                ndfile.write(line[pb].replace('\"', '').replace('\n', '') + '\t')
-                                        ndfile.write('\n')
-                                    else:
-                                        line.strip()
-                        if len(samples_a) > 1 or len(samples_b) > 1:
-                            gi.tools.upload_file(ndfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
-                        ndfile.close()
-                        commands.getoutput("rm " + ndfile.name)
-                    else:
-                        gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
-                dfile.close()
-                commands.getoutput("rm " + dfile.name)
-                commands.getoutput("rm " + tfile.name)
+            make_data_files(gi, files, request.session.get('username'), request.session.get('password'), control, test, history_id, filetype, dbkey)
         else:
-            for file in files:
-                nfile = str(file).split('/')
-                filename = nfile[len(nfile)-1]
-                cont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + file)
-                with open("input_all_" + filename, "w") as dfile:
-                    dfile.write(cont)
-                matrix = False
-                samples_a = []
-                samples_b = []
-                samples = []
-                with open("input_all_" + filename, "r") as tfile:
-                    if control != "[]" or test != "[]":
-                        with open("input_" + filename, "w") as ndfile:
-                            for line in tfile:
-                                if "!Sample_geo_accession" in line:
-                                    line = line.split('\t')
-                                    for x in range(0, len(line)):
-                                        if line[x].replace('\n', '') in control:
-                                            samples_a.append(x)
-                                        if line[x].replace('\n', '') in test:
-                                            samples_b.append(x)
-                                        samples.append(line[x])
-                                else:
-                                    if "!series_matrix_table_begin" in line:
-                                        matrix = True
-                                        samples_a.append(0)
-                                    if matrix:
-                                        line = line.split('\t')
-                                        for p in (p for p,x in enumerate(line) if p in samples_a):
-                                            if "!series_matrix_table_begin" not in line[p] and "!series_matrix_table_end" not in line[p]:
-                                                ndfile.write(line[p].replace('\"', '').replace('\n', '') + '\t')
-                                        for pb in (pb for pb,x in enumerate(line) if pb in samples_b):
-                                            if "!series_matrix_table_begin" not in line[pb] and "!series_matrix_table_end" not in line[pb]:
-                                                ndfile.write(line[pb].replace('\"', '').replace('\n', '') + '\t')
-                                        ndfile.write('\n')
-                                    else:
-                                        line.strip()
-                        gi.tools.upload_file(ndfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
-                        ndfile.close()
-                        commands.getoutput("rm " + ndfile.name)
-                    else:
-                        gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
-                        dfile.close()
-                        commands.getoutput("rm " + dfile.name)
-                commands.getoutput("rm " + tfile.name)
-                commands.getoutput("rm " + dfile.name)
-            for meta in mfiles:
-                mfile = str(meta).split('/')
-                mfilename = mfile[len(mfile)-1]
-                if meta == "No metadata":
-                    pass
-                else:
-                    mcont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + meta)
-                    with open("input_" + mfilename, "w") as metfile:
-                        metfile.write(mcont)
-                    metfile.close()
-                    linenr = 0
-                    with open("input_" + mfilename, "r") as metadatafile:
-                        if control != "[]" or test != "[]":
-                            with open("input_classmeta.txt", "w") as nmeta:
-                                for l in metadatafile:
-                                    if linenr > 0:
-                                        if linenr in samples_a:
-                                            l = l.replace('\n', '')
-                                            nmeta.write(l + "\tA")
-                                            nmeta.write("\n")
-                                        if linenr in samples_b:
-                                            l = l.replace('\n', '')
-                                            nmeta.write(l + "\tB")
-                                            nmeta.write("\n")
-                                    else:
-                                        l = l.replace('\n', '')
-                                        nmeta.write(l + "\tclass_id" + "\n")
-                                    linenr += 1
-                            gi.tools.upload_file(nmeta.name, history_id, file_type='auto', dbkey='?', prefix=file)
-                            commands.getoutput("rm " + nmeta.name)
-                            commands.getoutput("rm " + metadatafile.name)
-                        else:
-                            gi.tools.upload_file(metadatafile.name, history_id, file_type='auto', dbkey='?', prefix=file)
-                            commands.getoutput("rm " + metadatafile.name)
+            make_data_files(gi, files, request.session.get('username'), request.session.get('password'), control, test, history_id, filetype, dbkey)
+            make_meta_files(gi, mfiles, request.session.get('username'), request.session.get('password'), control, test, history_id)
         if workflowid != "0":
             in_count = 0
             resultid = uuid.uuid1()
@@ -569,161 +542,121 @@ def upload(request):
                     label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
                     mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
             for k,v in mydict.items():
-                datamap[v] = {'src': "hda", 'id': get_input_data(api, server)[0][in_count]}
+                datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'), request.session.get('server'))[0][in_count]}
                 in_count+=1
             gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
             gi.workflows.export_workflow_to_local_path(workflowid, "", True)
-            inputs = get_output(api, server, workflowid)
-            i=0
-            for inname in inputs[1]:
-                cont = commands.getoutput("curl -s -k " + server+inputs[0][i])
-                old_name =  strftime("%d_%b_%Y_%H:%M:%S", gmtime()) +  "_" + inname.replace('/', '_').replace(' ', '_')
-                with open(old_name, "w") as inputfile:
-                    inputfile.write(cont)
-                new_name = sha1sum(old_name) + "_" + old_name
-                os.rename(old_name, new_name)
-                for g in groups:
-                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
-                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
-                            storage +"/"+  g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    if samples == "[]":
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#sample_id> ALL } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                commands.getoutput("rm " + new_name)
-                i+=1
-            outputs = get_output(api, server, workflowid)
-            o=0
-            for outname in outputs[3]:
-                cont = commands.getoutput("curl -s -k " + server+outputs[2][o])
-                old_name =  strftime("%d_%b_%Y_%H:%M:%S", gmtime()) +  "_" + outname.replace('/', '_').replace(' ', '_')
-                with open(old_name, "w") as outputfile:
-                    outputfile.write(cont)
-                new_name = sha1sum(old_name) + "_" + old_name
-                os.rename(old_name, new_name)
-                for g in groups:
-                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
-                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
-                            storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    if samples == "[]":
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#sample_id> ALL } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                commands.getoutput("rm " + new_name)
-                o+=1
-            for filename in os.listdir("."):
-                if ".ga" in filename:
-                    new_name = sha1sum(filename) + "_" + filename
-                    os.rename(filename, new_name)
-                    for g in groups:
-                        if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-                            commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
-                        elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
-                            commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                            storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#workflow> \""+ filename +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#workflowid> \""+ workflowid +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            datafiles = get_output(request.session.get('api'), request.session.get('server'), workflowid)
+            store_results(
+                1, datafiles, request.session.get('server'), request.session.get('username'), request.session.get('password'), 
+                request.session.get('storage'), groups, resultid)
+            store_results(
+                3, datafiles, request.session.get('server'), request.session.get('username'), request.session.get('password'), 
+                request.session.get('storage'), groups, resultid)
+            ga_store_results(request.session.get('username'), request.session.get('password'), workflowid, request.session.get('storage'), resultid, groups)
             commands.getoutput("rm input_test")
-            commands.getoutput("rm " + new_name)
-            return render_to_response('results.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid, 'server': server})
+            return render_to_response('results.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid, 'server': request.session.get('server')})
         else:
-            resultid = uuid.uuid1()
-            outputs = get_output(api, server, workflowid)
-            n=0
-            for iname in outputs[1]:
-                cont = commands.getoutput("curl -s -k " + server+outputs[0][n])
-                old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + iname
-                with open(old_name, "w") as inputfile:
-                    inputfile.write(cont)
-                new_name = sha1sum(old_name) + "_" + old_name
-                os.rename(old_name, new_name)
-                for g in groups:
-                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/" + g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                            storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            username.replace('@', '')+"#pid> \""+ storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#workflow> \"No Workflow used\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    commands.getoutput(
-                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        username.replace('@', '')+"#workflowid> \""+ workflowid +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                commands.getoutput("rm " + new_name)
-                n+=1
+            ug_store_results(
+                request.session.get('api'), request.session.get('server'), workflowid, request.session.get('username'), 
+                request.session.get('password'), request.session.get('storage'), groups)
             return HttpResponseRedirect("/")
+
+
+"""
+Store input and output files created or used in a workflow.
+"""
+def store_results(column, datafiles, server, username, password, storage, groups, resultid):
+    o=0
+    for name in datafiles[column]:
+        cont = commands.getoutput("curl -s -k " + server+datafiles[column-1][o])
+        old_name =  strftime("%d_%b_%Y_%H:%M:%S", gmtime()) +  "_" + name.replace('/', '_').replace(' ', '_')
+        with open(old_name, "w") as outputfile:
+            outputfile.write(cont)
+        new_name = sha1sum(old_name) + "_" + old_name
+        os.rename(old_name, new_name)
+        for g in groups:
+            commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
+            commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+        commands.getoutput("rm " + new_name)
+        o+=1
+
+
+"""
+Store information about the Galaxy workflow file
+"""
+def ga_store_results(username, password, workflowid, storage, resultid, groups):
+    for filename in os.listdir("."):
+        if ".ga" in filename:
+            new_name = sha1sum(filename) + "_" + filename
+            os.rename(filename, new_name)
+            for g in groups:
+                commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
+                commands.getoutput(
+                    "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                    username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                    username.replace('@', '')+"#workflow> \""+ filename +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                commands.getoutput(
+                    "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                    username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                    username.replace('@', '')+"#workflowid> \""+ workflowid +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput("rm " + new_name)
+
+
+"""
+Store results in triple store that have been created withoud using a workflow.
+"""
+def ug_store_results(api, server, workflowid, username, password, storage, groups):
+    resultid = uuid.uuid1()
+    outputs = get_output(api, server, workflowid)
+    n=0
+    for iname in outputs[1]:
+        cont = commands.getoutput("curl -s -k " + server+outputs[0][n])
+        old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + iname
+        with open(old_name, "w") as inputfile:
+            inputfile.write(cont)
+        new_name = sha1sum(old_name) + "_" + old_name
+        os.rename(old_name, new_name)
+        for g in groups:
+            commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/" + g.replace('"', '') + "/results_" + str(resultid))
+            commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
+                storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#pid> \""+ storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#workflow> \"No Workflow used\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                username.replace('@', '')+"#workflowid> \""+ workflowid +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+        commands.getoutput("rm " + new_name)
+        n+=1
 
 
 """
@@ -743,8 +676,8 @@ This is based on the search results in myFAIR.
 """
 @csrf_exempt
 def show_results(request):
-    b2user = request.session.get('username')
-    b2pass = request.session.get('password')
+    username = request.session.get('username')
+    password = request.session.get('password')
     storage = request.session.get('storage')
     groups = []
     results = []
@@ -770,19 +703,19 @@ def show_results(request):
             results.append(r.replace('[', '').replace('"', '').replace(']', ''))
         for group in groups:        
             b2folders = commands.getoutput(
-                "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
+                "curl -s -X PROPFIND -u " + username + ":" + password +
                 " '"+ storage + '/' + group +"' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
             b2folders = filter(None, b2folders)
             for folder in b2folders:
                 if "results_" in folder:
                     result = commands.getoutput(
-                        "curl -s -X PROPFIND -u " + b2user + ":" + b2pass +
+                        "curl -s -X PROPFIND -u " + username + ":" + password +
                         " '"+ storage + '/' + group + '/' + 'results_'+results[0]+ "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
         for r in result:
             if ".ga" in r:
                 wf = True
                 nres = r.split('/')
-                cont = commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " " + storage + "/" +nres[len(nres)-3] + "/" + nres[len(nres)-2] + "/" + nres[len(nres)-1])
+                cont = commands.getoutput("curl -s -k -u " + username + ":" + password + " " + storage + "/" +nres[len(nres)-3] + "/" + nres[len(nres)-2] + "/" + nres[len(nres)-1])
                 with open(nres[len(nres)-1], "w") as ga:
                     ga.write(cont)
                 workflow = read_workflow(ga.name)
@@ -791,9 +724,9 @@ def show_results(request):
                 """
                 workflowid = commands.getoutput(
                     "curl -s -k http://127.0.0.1:3030/ds/query -X POST --data 'query=SELECT DISTINCT ?workflowid FROM <http://127.0.0.1:3030/ds/data/" + 
-                    b2user.replace('@', '')+"> { VALUES (?workflow) {(\""+ ga.name +"\")}{ ?s <http://127.0.0.1:3030/ds/data?graph=" +
-                    b2user.replace('@', '')+"#workflowid> ?workflowid . ?s <http://127.0.0.1:3030/ds/data?graph=" +
-                    b2user.replace('@', '')+"#workflow> ?workflow . } } ORDER BY (?workflowid)' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
+                    username.replace('@', '')+"> { VALUES (?workflow) {(\""+ ga.name +"\")}{ ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                    username.replace('@', '')+"#workflowid> ?workflowid . ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                    username.replace('@', '')+"#workflow> ?workflow . } } ORDER BY (?workflowid)' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
                 wid = json.dumps(workflowid)
                 wfid = json.loads(workflowid)
                 wid = json.dumps(wfid["results"]["bindings"][0]["workflowid"]["value"])
@@ -828,8 +761,6 @@ def get_output(api, server, workflowid):
     if api is None:
         return HttpResponseRedirect("/")
     else:
-        server = server
-        api = api
         gi = GalaxyInstance(url=server, key=api)
         workflow = workflowid
         historyid = get_history_id(api, server)
@@ -840,7 +771,7 @@ def get_output(api, server, workflowid):
         state = hist['state_ids']
         dump = json.dumps(state)
         status = json.loads(dump)
-        time.sleep(10)
+        time.sleep(5)
         while status['running'] or status['queued'] or status['new'] or status['upload']:
             hist = gi.histories.show_history(historyid)
             state = hist['state_ids']
@@ -878,16 +809,16 @@ Store results from Galaxy history to Owncloud/B2DROP.
 Create new triples.
 """
 @csrf_exempt
-def output(request):
+def store_history(request):
     if request.session.get('api') is None:
         return HttpResponseRedirect("/")
     else:
         server = request.session.get('server')
         api = request.session.get('api')
         gi = GalaxyInstance(url=server, key=api)
-        workflow = request.POST.get('workflowid')
-        b2user = request.session.get('username')
-        b2pass = request.session.get('password')
+        # workflow = request.POST.get('workflowid')
+        username = request.session.get('username')
+        password = request.session.get('password')
         storage = request.session.get('storage')
         groups = request.POST.get('folder')
         url = []
@@ -896,10 +827,8 @@ def output(request):
         if request.method == 'POST':
             historyid = request.POST.get('history')
             pid = request.POST.get('pid')
-            #Variables for getting the input files.
             inputs = []
             input_ids = []
-            #Variables for getting the output files.
             output = []
             hist = gi.histories.show_history(historyid)
             state = hist['state_ids']
@@ -931,41 +860,32 @@ def output(request):
                 os.rename(old_name, new_name)
                 count+=1
                 for g in groups.split(','):
-                    if storage == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -X MKCOL " + server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + new_name + '\'' + " " + 
-                            server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#pid> \""+ server + "/owncloud/remote.php/webdav/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                    elif storage == "https://b2drop.eudat.eu/remote.php/webdav":
-                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
-                        commands.getoutput("curl -s -k -u " + b2user + ":" + b2pass + " -T " + '\'' + new_name + '\'' + " " + 
-                            storage +"/"+  g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
-                        commands.getoutput(
-                            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                            b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                            b2user.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage +"/"+ g.replace('"', '') + "/results_" + str(resultid))
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + 
+                        storage +"/"+  g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        username.replace('@', '')+"#pid> \""+ storage +"/"+ g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        username.replace('@', '')+"#results_id> \""+ str(resultid) +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#workflow> \""+ hist['name'] +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        username.replace('@', '')+"#group_id> \""+ g.replace('"', '') +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
-                        b2user.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
-                        b2user.replace('@', '')+"#workflowid> \""+ "0" +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        username.replace('@', '')+"#workflow> \""+ hist['name'] +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    commands.getoutput(
+                        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
+                        username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
+                        username.replace('@', '')+"#workflowid> \""+ "0" +"\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                 commands.getoutput("rm " + new_name)
             ug_context = {'outputs': output, 'inputs': input_ids, 'hist': hist, 'server': server}
-            return render(request, 'output.html', ug_context)
+            return render(request, 'history.html', ug_context)
 
 
 def read_workflow(filename):
@@ -984,29 +904,25 @@ def read_workflow(filename):
 
 @csrf_exempt
 def rerun_analysis(request):
-    b2user = request.session.get('username')
-    b2pass = request.session.get('password')
-    server = request.session.get('server')
-    api = request.session.get('api')
-    storage = request.session.get('storage')
     workflowid = request.POST.get('workflowid')
     workflowid = workflowid.replace('"', '')
     resultid = request.POST.get('resultid')
-    gi = GalaxyInstance(url=server, key=api)
+    gi = GalaxyInstance(url=request.session.get('server'), key=request.session.get('api'))
     inputs = request.POST.get('inputs')
     urls = request.POST.get('urls')
     urls = urls.split(',')
     gi.histories.create_history(name=resultid)
-    history_id = get_history_id(api, server)
+    history_id = get_history_id(request.session.get('api'), request.session.get('server'))
     for u in urls:
         filename = u.replace("[", "").replace("]", "").replace(" ", "").replace('"', '')
-        cont = commands.getoutput("curl -s -u " + b2user + ":" + b2pass + " " + storage + "/" + filename)
+        cont = commands.getoutput(
+            "curl -s -u " + request.session.get('username') + ":" + request.session.get('password') + " " + request.session.get('storage') + "/" + filename)
         file = filename.split('/')
         with open(file[len(file)-1], "w") as infile:
             infile.write(cont)
         gi.tools.upload_file(infile.name, history_id, file_type="auto", dbkey="?", prefix=file)
         commands.getoutput("rm " + infile.name)
-    time.sleep(15)
+    time.sleep(30)
     if workflowid != "0":
         in_count = 0
         datamap = dict()
@@ -1019,7 +935,7 @@ def rerun_analysis(request):
                 label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
                 mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
         for k,v in mydict.items():
-            datamap[v] = {'src': "hda", 'id': get_input_data(api, server)[0][in_count]}
+            datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'), request.session.get('server'))[0][in_count]}
             in_count+=1
         gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
     return HttpResponseRedirect("/")

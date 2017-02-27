@@ -28,7 +28,7 @@
                 </span>
                 <span style="float:right">
                 Storage Location: {{storage}} <br />
-                Storage-User: <span id="user">{{b2user}}</span> <br />
+                Storage-User: <span id="user">{{username}}</span> <br />
                 </span>
             </p>
             <br />
@@ -36,7 +36,7 @@
                 <br />
                 <br />
                 || <a href="/">Home</a>
-                || <a href="/eudat">Upload Files</a>
+                || <a href="/triples">Upload Files</a>
                 || <a href="/delete">Delete from graph</a>
                 || <a href="/logout">Logout</a> ||
                 <br />
@@ -163,7 +163,7 @@
     <button id="index_buttons" onclick="getoutput()">Show results</button>
 </div>
 <div id="select" style="display: block;">
-    <form action="out" method="post" name="result">
+    <form action="history" method="post" name="history">
         <p>Select a history and an Owncloud folder:</p>
         <input type="hidden" name="api" id="api" value={{api}}>
         <input type="hidden" name="b2user" id="b2user" value={{b2user}}>
@@ -182,7 +182,7 @@
                 {% endfor %}
             </optgroup>
         </select>
-        <button id="index_buttons" onclick="document.result.submit()">Send history to Owncloud</button>
+        <button id="index_buttons" onclick="document.history.submit()">Send history to Owncloud</button>
     </form>
     <br />
     <br />
