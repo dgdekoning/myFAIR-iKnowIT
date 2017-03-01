@@ -4,15 +4,18 @@
 <link href="{% static 'css/output.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-
-|| <a href="/">&lt;&lt;back</a>
-|| <a href="/logout">Logout</a> ||
+<p style="margin-left: 20px;">
+    || <a href="/">&lt;&lt;back</a>
+    || <a href="/logout">Logout</a> ||
+</p>
+<hr>
 <div id="title">
-    <h1>{{resultid}}</h1>
+    <h2>{{resultid}}</h2>
 </div>
+<br />
 <div id="wrapper">
     <div id="input" style="overflow-x:auto;">
-        <h1>Input Files</h1>
+        <h3>Input Files</h3>
         <p>
         <table id="input-files">
             <span id="input-list" style="display: none">
@@ -34,7 +37,7 @@
         </p>
     </div>
     <div id="analysis" style="overflow-x:auto;">
-        <h1>Analysis Details</h1>
+        <h3>Analysis Details</h3>
         <p>
             <table id="analysis-info">
                 <th>Galaxy workflow file</th>
@@ -51,7 +54,6 @@
                                     <a href="{{storage}}/{{resultid}}/{{output}}">
                                         <button class="button">Download</button>
                                     </a>
-                                    <!--<button class="button" onclick="rerun_analysis()">Run Analysis</button>-->
                                 </td>
                             </tr>
                         {% endif %}
@@ -96,7 +98,7 @@
         </div>
     </div>
     <div id="output" style="overflow-x:auto;">
-        <h1>Output Files</h1>
+        <h3>Output Files</h3>
         <p>
         <table id="output-files">
             <th>Output File</th>

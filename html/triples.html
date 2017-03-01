@@ -1,30 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
-<p>
+<p style="margin-left: 20px;">
     || <a href="/">Home</a>
     || <a href="/delete">Delete from graph</a>
     || <a href="/logout">Logout</a> ||
     <br />
 </p>
 <div id="login">
-    <!--<form action="/eudat/" method="post" name="eudat">-->
-    <form action="/triples/" method="post" name="triples">
-        Select a study by clicking on the dropdown menu.<br />
-        <select id="folder" name="folder">
-            <optgroup label="available folders:">
-                <option disabled selected value="{{ selected }}">{{ selected }}</option>
+    <form action="/investigation/" method="post" name="investigation">
+        <b>
+            Select an investigation by clicking on the dropdown menu.<br />
+            Click the See Studies button to view all studies within that investigation.<br />
+        </b>
+        <select id="folder" name="folder" class="select-folder">
+            <optgroup label="available investigations:">
+                <option id="inv" disabled selected value="{{ inv }}">{{ inv }}</option>
                 {% for folder in folders %}
                     <option value="{{ folder }}">{{ folder }}</option>
                 {% endfor %}
             </optgroup>
         </select>
     </form>
+    <br />
+    <button id="index_buttons" onclick="document.investigation.submit()">See Studies</button>
+    <hr />
+    <form action="/triples/" method="post" name="triples">
+        <input type="hidden" name="inv" id="inv" value="{{inv}}">
+        <input type="hidden" name="sstudy" id="sstudy" value="{{sstudy}}">
+        <b>
+            Select a study by clicking on the dropdown menu.<br />
+            Click on the See Files button to view all files within that study. <br />
+        </b>
+        <select id="study" name="study" class="select-folder">
+            <optgroup label="available studies:">
+                {% if inv and not sstudy%}
+                    <option disabled selected value="">Select a study</option>
+                {% elif sstudy %}
+                    <option disabled selected value="{{ sstudy }}">{{ sstudy }}</option>
+                {% endif %}
+                {% for study in studies %}
+                    <option value="{{ study }}">{{ study }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+    </form>
+    <br />
     <button id="index_buttons" onclick="document.triples.submit()">See Files</button>
-    <br />
-    <br />
-    <!--<form action="/eudat/" id="eudat" method="post" name="files_eudat">-->
-    <form action="/triples/" id="triples" method="post" name="files_triples">
-        <input type="hidden" name="selected_folder" value="{{ selected }}">
+    <hr />
+    <form action="/triples/" method="post" name="files">
+        <input type="hidden" name="selected_folder" value="{{ inv }}">
+        <input type="hidden" name="selected_study" value="{{ sstudy }}">
         <input type="hidden" id="datalist" name="datalist" value="">
         <input type="hidden" id="metalist" name="metalist" value="">
         <table>
@@ -57,7 +82,7 @@
                 });
                 var datalist = JSON.stringify(datafilelist);
                 var metalist = JSON.stringify(metafilelist);
-                var formInfo = document.forms['files_triples'];
+                var formInfo = document.forms['files'];
                 formInfo.datalist.value = datafilelist
                 formInfo.metalist.value = metalist
             }

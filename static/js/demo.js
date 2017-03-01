@@ -25,7 +25,8 @@ $(document).ready(function () {
 document.getElementById("template").onchange = function () {
     $("#sampleid").addClass('hidden');
     $("#family").addClass('hidden');
-    $("#group").addClass('hidden');
+    $("#investigation").addClass('hidden');
+    $("#study").addClass('hidden');
     $("#sex").addClass('hidden');
     $("#disease").addClass('hidden');
     $("#errorPanel").addClass('hidden');
@@ -39,8 +40,11 @@ document.getElementById("template").onchange = function () {
     if (TEMPLATE_QUERIES[selected].variables.indexOf('family') > -1) {
         $("#family").removeClass('hidden');
     }
-    if (TEMPLATE_QUERIES[selected].variables.indexOf('group') > -1) {
-        $("#group").removeClass('hidden');
+    if (TEMPLATE_QUERIES[selected].variables.indexOf('investigation') > -1) {
+        $("#investigation").removeClass('hidden');
+    }
+    if (TEMPLATE_QUERIES[selected].variables.indexOf('study') > -1) {
+        $("#study").removeClass('hidden');
     }
     if (TEMPLATE_QUERIES[selected].variables.indexOf('sex') > -1) {
         $("#sex").removeClass('hidden');
@@ -229,7 +233,7 @@ function fillTable(result) {
         );
     } else {
         $('#galaxy').html(
-            '<select name="filetype" id="filetype">' +
+            '<select name="filetype" id="filetype" class="select-option">' +
                 '<optgroup label="File Type:">' +
                 '<option value="vcf">vcf</option>' +
                 '<option value="tabular">tabular</option>' +
@@ -238,7 +242,7 @@ function fillTable(result) {
                 '<option value="auto">auto</option>' +
                 '</optgroup>' +
                 '</select>' +
-                '<select name="dbkey" id="dbkey">' +
+                '<select name="dbkey" id="dbkey" class="select-option">' +
                 '<optgroup label="Database">' +
                 '<option value="hg19">HG19</option>' +
                 '<option value="hg18">HG18</option>' +
@@ -284,6 +288,7 @@ function postdata(g) {
     var dat = [];
     var meta = [];
     var group = [];
+    var investigation = [];
     var samples = new Array;
     var samplesb = new Array;
     $("input:checkbox[name=samplea]:checked").each(function(){
@@ -299,12 +304,14 @@ function postdata(g) {
         dat.push(getrow(selected[s])[0]);
         meta.push(getrow(selected[s])[1]);
         group.push(getrow(selected[s])[2]);
+        investigation.push(getrow(selected[s])[3]);
     }
     var jsonSamples = JSON.stringify(samples);
     var jsonSamplesb = JSON.stringify(samplesb);
     var jsonSelected = JSON.stringify(dat);
     var jsonMeta = JSON.stringify(meta);
     var jsonGroup = JSON.stringify(group);
+    var jsonInvestigation = JSON.stringify(investigation);
     var data_id = checkData(g);
     var meta_id = checkMeta(g);
     var token = "ygcLQAJkWH2qSfawc39DI9tGxisceVSTgw9h2Diuh0z03QRx9Lgl91gneTok";
@@ -318,7 +325,7 @@ function postdata(g) {
         'filetype': filetype, 'dbkey': dbkey, 'meta_id': meta_id, 
         'selected': jsonSelected, 'meta': jsonMeta, 'onlydata': onlydata, 
         'samples': jsonSamples, 'samplesb': jsonSamplesb, 'historyname': historyname, 
-        'group': jsonGroup},
+        'group': jsonGroup, 'investigation': jsonInvestigation},
         success: function (data) {
             if(dat.length <= 0) {
                 document.getElementById('errormessage').innerHTML = "No file selected, please try again."
@@ -343,6 +350,7 @@ function postdata(g) {
 function getoutput() {
     var selected = new Array;
     var group = [];
+    var investigations = [];
     var resultid = new Array;
     $("input:checkbox[name=select]:checked").each(function(){
         selected.push($(this).val());
@@ -350,13 +358,15 @@ function getoutput() {
     for (s = 0; s < selected.length; s++) {
         resultid.push(getrow(selected[s])[1]);
         group.push(getrow(selected[s])[2]);
+        investigations.push(getrow(selected[s])[3]);
     }
     var jsonGroup = JSON.stringify(group);
+    var jsonInvestigation = JSON.stringify(investigations);
     var jsonResultid = JSON.stringify(resultid);
     $.ajax({
         type: 'POST',
         url: "results",
-        data: { 'group': jsonGroup, 'resultid': jsonResultid},
+        data: { 'group': jsonGroup, 'resultid': jsonResultid, 'investigations': jsonInvestigation},
         success: function (data) {
             window.location.href = "/results"
         },
@@ -416,13 +426,16 @@ function getrow(r) {
     var str = "";
     var str2 = "";
     var str3 = "";
+    var str4 = "";
     var x = document.getElementById('results_table').rows[r].cells.item(1).innerText;
     var y = document.getElementById('results_table').rows[r].cells.item(2).innerText;
-    var z = document.getElementById('results_table').rows[r].cells.item(3).innerText;
+    var z = document.getElementById('results_table').rows[r].cells.item(4).innerText;
+    var i = document.getElementById('results_table').rows[r].cells.item(3).innerText;
     str = str + x;
     str2 = str2 + y;
     str3 = str3 + z;
-    return [str, str2, str3];
+    str4 = str4 + i;
+    return [str, str2, str3, str4];
 }
 function getsamples() {
     var samples = new Array;
@@ -454,7 +467,6 @@ function getsamples() {
             error: function(data) {},
     });
 }
-
 function rerun_analysis() {
     wid = document.getElementById("workflowid").innerText; 
     inputs = document.getElementById("input-list").innerText;

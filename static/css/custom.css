@@ -6,15 +6,10 @@
 .navbar-fixed-top .nav {
     padding: 15px 0;
 }
-.navbar-fixed-top .navbar-brand {
-    /*padding: 0 15px;*/
-}
 @media(min-width:768px) {
     body {
         padding-top: 40px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
-    }
-    .navbar-fixed-top .navbar-brand {
-        /*padding: 6px 0;*/
+        font-size: 9pt;
     }
 }
 .navbar-inverse{
@@ -31,6 +26,7 @@
 .table {
     width: 100%;
     table-layout: auto;
+    font-size: 9pt;
 }
 .table a{
     cursor: pointer;
@@ -52,7 +48,7 @@
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 12px;
+    font-size: 9pt;
     cursor: pointer;
 }
 #login-button:hover {
@@ -65,9 +61,9 @@
   outline: none;
 }
 option {
-    height:20px;
+    height:18px;
     text-indent:30px;
-    font-size: 120%;
+    font-size: 100%;
     background-image:url(../images/dtl-tab-icon.png);
     background-repeat:no-repeat;
     background-position:3px 0;
@@ -79,6 +75,7 @@ Voilet color button
   color: #000000;
   background-color: #86CEF4;
   border-color: #21317F;
+  font-size: 10pt;
 }
 .btn-voilet:hover,
 .btn-voilet:focus,
@@ -88,6 +85,7 @@ Voilet color button
   color: #000000;
   background-color: #86CEF4;
   border-color: #21317F;
+  font-size: 10pt;
 }
 .btn-voilet:active,
 .btn-voilet.active,
@@ -111,10 +109,12 @@ fieldset[disabled] .btn-voilet:active,
 fieldset[disabled] .btn-voilet.active {
   background-color: #86CEF4;
   border-color: #21317F;
+  font-size: 10pt;
 }
 .btn-voilet .badge {
   color: #86CEF4;
   background-color: #000000;
+  font-size: 10pt;
 }
 
 /*
@@ -124,6 +124,7 @@ Red color button
   color: #000000;
   background-color: #86CEF4;
   border-color: #21317F;
+  font-size: 10pt;
 }
 .btn-red:hover,
 .btn-red:focus,
@@ -167,12 +168,29 @@ fieldset[disabled] .btn-red.active {
     text-align: center;
 }
 .select-workflow {
-    font-size: 12pt;
-    min-width: 450px;
-    max-width: 767px;
+    font-size: 10pt;
+    min-width: 10%;
+    max-width: 50%;
     background-color: #86CEF4;
 }
 .select-workflow optgroup {
+    font-size: 10pt;
+}
+.select-folder {
+    font-size: 10pt;
+    min-width: 25%;
+    max-width: 100%;
+    background-color: #ffffff;
+}
+.select-folder optgroup {
+    font-size: 10pt;
+}
+.select-option {
+    font-size: 10pt;
+    min-width: 10%;
+    max-width: 25%;
+    background-color: #86CEF4;
+}.select-folder optgroup {
     font-size: 10pt;
 }
 #selecttype {
@@ -187,7 +205,7 @@ fieldset[disabled] .btn-red.active {
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 12px;
+    font-size: 9pt;
     cursor: pointer;
 }
 #index_buttons:hover {
@@ -204,6 +222,7 @@ fieldset[disabled] .btn-red.active {
     background-color: #86CEF4;
     margin-left: 20px;
     padding: 10px;
+    font-size: 9pt;
 }
 #login table {
     color: #21317F;
@@ -211,27 +230,6 @@ fieldset[disabled] .btn-red.active {
 #login th{
     padding-right: 3em;
 }
-/*#isa {
-    float: left;
-    padding: 10px;
-    margin-left: 20px;
-    background-color: #86CEF4;
-}
-#isa table {
-    color: #21317F;
-}
-#isa b {
-    padding-right: 3em;
-}
-#isa fieldset {
-    position: relative;
-}
-#isa input {
-    position: relative;
-    width: 100%;
-    left: 0;
-    right: 0;
-}*/
 #help {
     float: left;
     margin-left: 20px;
@@ -248,7 +246,6 @@ fieldset[disabled] .btn-red.active {
 /*
 Sticky footer styles
 */
-
       html,
       body {
         height: 100%;
@@ -257,32 +254,32 @@ Sticky footer styles
 
       /* Wrapper for page content to push down footer */
       #wrap {
-        min-height: 100%;
-        height: auto !important;
-        height: 100%;
-        /* Negative indent footer by it's height */
-        margin: 0 auto -60px;
+          min-height: 100%;
+          height: auto !important;
+          height: 100%;
+          /* Negative indent footer by it's height */
+          margin: 0 auto -60px;
       }
 
       /* Set the fixed height of the footer here */
       #push,
       #footer {
-        height: 60px;
+          clear: both;
+          height: 50px;
       }
       #footer {
-        background-color: #f5f5f5;
+          background-color: #d9edf7;
       }
 
       /* Lastly, apply responsive CSS fixes as necessary */
       @media (max-width: 767px) {
-        #footer {
-          margin-left: -20px;
-          margin-right: -20px;
-          padding-left: 20px;
-          padding-right: 20px;
+          #footer {
+              margin-left: -20px;
+              margin-right: -20px;
+              padding-left: 20px;
+              padding-right: 20px;
         }
       }
-
 
 
       /* Custom page CSS
@@ -295,7 +292,6 @@ Sticky footer styles
       .container .credit {
         margin: 20px 0;
       }
-
       code {
         font-size: 80%;
       }

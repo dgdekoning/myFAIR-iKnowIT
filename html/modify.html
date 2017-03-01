@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<p>
+<p style="margin-left: 20px;">
     || <a href="/">Home</a>
     || <a href="/triples">Upload Files</a>
     || <a href="/logout">Logout</a> ||
@@ -8,11 +8,18 @@
 </p>
 <div id="login">
     <form action="modify" method="post" name="delete">
-        <p>Type in the group name you want to delete</p>
-        <input type="text" name="delete" id="delete">
+        <p>Type in the study name you want to delete</p>
+        <input type="text" name="dstudy" id="dstudy" placeholder="study to delete">
+        <br />
+        <br />
+        <p>
+            or type in the investigation name <br />
+            to delete all studies within that investigation. <br />
+        </p>
+        <input type="text" name="dinvestigation" id="dinvestigation" placeholder="investigation to delete">
     </form>
     <br />
-    <button id="index_buttons" onclick="document.delete.submit()">Delete group</button>
+    <button id="index_buttons" onclick="document.delete.submit()">Delete</button>
     <br />
     <br />
 </div>

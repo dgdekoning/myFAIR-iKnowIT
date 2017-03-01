@@ -33,4 +33,5 @@ urlpatterns = [
     url(r'^results', views.show_results),
     url(r'^rerun', views.rerun_analysis),
     url(r'^history', views.store_history),
+    url(r'^investigation', views.investigation),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
