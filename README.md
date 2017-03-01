@@ -70,7 +70,7 @@ In order to run the myFAIR analysis you need to follow these steps:
 8. Login using your Galaxy API Key and your B2DROP or bioinf-galaxian credentials.
 9. Upload files to the Fuseki server:
     * Click on the "Upload Files" link.
-    * Select the folder where your datafiles are located and click "See files".
+    * Select the folder (investigation) where your datafiles are located and click "See files".
     * You will now see the two files you added to this folder in step 6.
     * Choose which file is your datafile (vcf file) and which file is your metadata (ped file).
     * Click "Store Triples" to start the creation of new triples and store them in the Fuseki server.
