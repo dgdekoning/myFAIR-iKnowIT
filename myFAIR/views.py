@@ -889,12 +889,14 @@ def get_output(api, server, workflowid):
         inputs = []
         input_ids = []
         outputs = []
+        time.sleep(20)
         hist = gi.histories.show_history(historyid)
         state = hist['state_ids']
         dump = json.dumps(state)
         status = json.loads(dump)
+        print status
         while status['running'] or status['queued'] or status['new'] or status['upload']:
-            time.sleep(5)
+            time.sleep(20)
             hist = gi.histories.show_history(historyid)
             state = hist['state_ids']
             dump = json.dumps(state)
