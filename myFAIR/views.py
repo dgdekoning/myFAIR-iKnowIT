@@ -12,7 +12,6 @@ from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.client import ConnectionError
 from django.shortcuts import render_to_response, render, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
-from django.template import RequestContext
 
 
 """
@@ -170,6 +169,26 @@ def triples(request):
                 new = oc.replace('/remote.php/webdav/', '').replace('/', '')
                 folders.append(new)
         folders = filter(None, folders)
+        if request.POST.get('inv') != "" and request.POST.get('inv') is not None:
+            oc_studies = commands.getoutput(
+                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                " '" + request.session.get('storage') + "/" + request.POST.get('inv') + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+            for s in oc_studies:
+                if request.POST.get('inv') != "" and request.POST.get('inv') is not None:
+                    if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                        new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('inv') + "/", '').replace('/', '')
+                        studies.append(new)
+                    elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
+                        new = s.replace('/remote.php/webdav/' + request.POST.get('inv') + "/", '').replace('/', '')
+                        studies.append(new)
+                elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
+                    if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                        new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                        studies.append(new)
+                    elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
+                        new = s.replace('/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                        studies.append(new)
+            studies = filter(None, studies)
         if request.POST.get('study') != "" and request.POST.get('study') is not None:
             study = request.POST.get('study')
         if request.method == 'POST':
@@ -192,7 +211,6 @@ def triples(request):
                         new = f.replace('/remote.php/webdav/'+ inv + "/" + study, '').replace('/', '')
                         files.append(new)
                 files = filter(None, files)
-                studies = filter(None, studies)
                 metadata = []
                 datafiles = []
                 if datalist is not None or metalist is not None:
@@ -229,19 +247,28 @@ def investigation(request):
             folders.append(new)
     folders = filter(None, folders)
     if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
-        group = request.POST.get('folder')
+        oc_studies = commands.getoutput(
+            "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+            " '" + request.session.get('storage') + "/" + request.POST.get('folder') + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
     else:
-        group = request.POST.get('selected_folder')
-    oc_studies = commands.getoutput(
-        "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-        " '" + request.session.get('storage') + "/" + request.POST.get('folder') + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+        oc_studies = commands.getoutput(
+            "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+            " '" + request.session.get('storage') + "/" + request.POST.get('selected_folder') + "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
     for s in oc_studies:
-        if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
-            new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('folder') + "/", '').replace('/', '')
-            studies.append(new)
-        elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
-            new = s.replace('/remote.php/webdav/' + request.POST.get('folder') + "/", '').replace('/', '')
-            studies.append(new)
+        if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
+            if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('folder') + "/", '').replace('/', '')
+                studies.append(new)
+            elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
+                new = s.replace('/remote.php/webdav/' + request.POST.get('folder') + "/", '').replace('/', '')
+                studies.append(new)
+        elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
+            if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
+                new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                studies.append(new)
+            elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
+                new = s.replace('/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                studies.append(new)
     studies = filter(None, studies)
     inv = request.POST.get('folder')
     return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
@@ -563,14 +590,11 @@ def upload(request):
     gi = GalaxyInstance(url=request.session.get('server'), key=request.session.get('api'))
     selected = request.POST.get('selected')
     selectedmeta = request.POST.get('meta')
-    token = request.POST.get('token')
     filetype = request.POST.get('filetype')
     dbkey = request.POST.get('dbkey')
     workflowid = request.POST.get('workflowid')
     pid = request.POST.get('data_id')
-    metaid = request.POST.get('meta_id')
     onlydata = request.POST.get('onlydata')
-    gurl = request.POST.get('datasets')
     control = request.POST.get('samples')
     test = request.POST.get('samplesb')
     new_hist = request.POST.get('historyname')

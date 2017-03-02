@@ -63,14 +63,16 @@ In order to run the myFAIR analysis you need to follow these steps:
 5. Get the API Key from your account. If you do not have an API Key visible for you, create one.
 6. Visit the B2DROP or page and create a folder where you can put your datafiles. You can also use the bioinf-galaxian Owncloud if you have an account.
     * If you do not have a B2DROP account please visit: https://b2drop.eudat.eu/index.php/login and click register.
-    * If you have a B2DROP account, please log in and create a new folder.
-    * Add the .vcf and .ped file to this folder.
+    * If you have a B2DROP account, please log in and create a new folder with the name of your investigation.
+    * Add a folder with the name of your study.
+    * Add the .vcf and .ped file to the study folder.
     If you are using the GEO data matrix, please put that file in a folder.
 7. Visit the myFAIR analysis page on 127.0.0.1:8080
 8. Login using your Galaxy API Key and your B2DROP or bioinf-galaxian credentials.
 9. Upload files to the Fuseki server:
     * Click on the "Upload Files" link.
-    * Select the folder (investigation) where your datafiles are located and click "See files".
+    * Select the investigation folder and click "See studies".
+    * Select the study folder where your datafiles are located and click "See files".
     * You will now see the two files you added to this folder in step 6.
     * Choose which file is your datafile (vcf file) and which file is your metadata (ped file).
     * Click "Store Triples" to start the creation of new triples and store them in the Fuseki server.
@@ -93,7 +95,7 @@ In order to run the myFAIR analysis you need to follow these steps:
     *   Click on the "Process >>" button to start searching for your files.
     
     d. Find your files using a group name:
-    *   Select the option "Get samples from group".
+    *   Select the option "Get samples from study".
     *   Enter the name of a group.
     *   Click on the "Process >>" button to start searching for your files.
 
@@ -105,6 +107,11 @@ In order to run the myFAIR analysis you need to follow these steps:
     f. Find samples with a specific disease:
     *   Select the option "Get samples from disease".
     *   Enter the name of the disease.
+    *   Click on the "Process >>" button to start searching for your files.
+
+    g. Find studies in an investigation:
+    *   Select the option "Get studies from investigation".
+    *   Enter the name of the investigation.
     *   Click on the "Process >>" button to start searching for your files.
     
 11. Send the files to Galaxy and run a workflow:
@@ -122,11 +129,11 @@ If something went wrong (workflow failed, not selected a file) or you get timed-
 To split GEO files and send only specific samples to a new Galaxy history follow these steps:
 
 1. Download the GSE7621_series_matrix.txt files from ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE7nnn/GSE7621/matrix/
-2. Place the data matrix in a folder in B2DROP or bioinf-galaxian Owncloud.
-3. Index the data matrix by clicking on the Upload Files link. Then selecting the folder with the data matrix, then select the matrix file as a datafile and click on the "Store Triples" button. (If you already have a metadata file based on the data matrix please select this file to be metadata. Step 4 will be skipped if you have selected this option.)
+2. Place the data matrix in a study folder in B2DROP or bioinf-galaxian Owncloud (make sure that the study folder is in a investigation folder).
+3. Index the data matrix by clicking on the Upload Files link. Then selecting the investigation folder where the study is located and click the "See studies" button. Select the study with the data matrix, then select the matrix file as a datafile and click on the "Store Triples" button. (If you already have a metadata file based on the data matrix please select this file to be metadata. Step 4 will be skipped if you have selected this option.)
 4. The metadata will be created automatically and uploaded to the same folder as the data matrix. After this is done you will be redirected to the homepage.
-5. Select the "Get samples from group" option.
-6. Enter the name of the folder where the data matrix is located.
+5. Select the "Get samples from study" option.
+6. Enter the name of the study folder where the data matrix is located.
 7. Click on the "Process >>" button to start searching for all available samples in the data matrix.
 8. A list of samples will be shown in the results table. On the right side you will see a checkbox to select the file you want to use, on the left side are two checkboxes with the options A and B.
 9. Select a file you want to use (In this case all files should be the same).
@@ -140,8 +147,8 @@ To split GEO files and send only specific samples to a new Galaxy history follow
 # <a name="see-results"></a> See results
 The following steps can be used to view the results of your analysis.
 
-1. Click on the "Get results from group" option.
-2. Enter the group name that you want to get the results from.
+1. Click on the "Get results from study" option.
+2. Enter the study name that you want to get the results from.
 3. Select the results you want to view by checking the select file checkmark.
 4. Click on the "Show results" button.
 5. A new page will open with the input and output files  and the analysis details.

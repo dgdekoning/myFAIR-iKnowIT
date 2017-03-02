@@ -38,9 +38,11 @@
                 {% elif sstudy %}
                     <option disabled selected value="{{ sstudy }}">{{ sstudy }}</option>
                 {% endif %}
-                {% for study in studies %}
-                    <option value="{{ study }}">{{ study }}</option>
-                {% endfor %}
+                {% if studies is not None and studies != "" %}
+                    {% for study in studies %}
+                        <option value="{{ study }}">{{ study }}</option>
+                    {% endfor %}
+                {% endif %}
             </optgroup>
         </select>
     </form>
