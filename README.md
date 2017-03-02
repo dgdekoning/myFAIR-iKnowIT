@@ -31,7 +31,7 @@ To install myFAIR on your existing Virtual Machine follow these steps:
 1. Install all dependencies.
 2. Download or clone myFAIR to your home directory. The latest version can be found [here](https://github.com/ErasmusMC-Bioinformatics/myFAIR).
 3. Change the Galaxy server setting by changing the **galaxy.ini.sample** file. Change the port to 8000 and change the host to 0.0.0.0
-4. Run the server by opening the terminal and type: **myFAIR/manage.py runserver 0.0.0.0:8080**
+4. Run the server by opening the terminal and type: **myFAIR/manage.py runserver 0.0.0.0:8080** (please make sure manage.py have the right permissions: **chmod+x manage.py**)
 5. To run the Apache Fuseki Server open the terminal and type:  **fuseki location/fuseki start**
 7. Create a new dataset in Fuseki called "ds".
 8. Start the Galaxy server by opening the terminal and type: **galaxy location/run.sh**
@@ -48,9 +48,11 @@ Everything is already pre-installed and can be used after following these steps 
 
 1. Download the Virtual Machine [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/Qr5Nu6CBotyvG1Z). **(The size of the Virtual Machine will be large due to the annotation files needed for Gemini, please make sure you have enough free space to run the Virtual Machine)**
 2. Add the Virtual Machine and start the Virtual Machine (Password is "fair@emc")
-3. Open the terminal and start the Fuseki Server by typing: **.local/apache-jena-fuseki-2.4.1/fuseki start**
-4. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page. To see if the fuseki server is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
-5. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
+3. Download or clone myFAIR to your home directory. The latest version can be found [here](https://github.com/ErasmusMC-Bioinformatics/myFAIR).
+4. Overwrite the old myFAIR version with the new version.
+4. Open the terminal and start the Fuseki Server by typing: **.local/apache-jena-fuseki-2.4.1/fuseki start**
+5. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page. To see if the fuseki server is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
+6. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
 After these steps you can run the myFAIR analysis.
 
 # <a name="run-the-myfair-analysis"></a> Run the myFAIR analysis
