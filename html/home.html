@@ -159,11 +159,35 @@
     <button id="index_buttons" onclick="getoutput()">Show results</button>
 </div>
 <div id="select" style="display: block;">
-    <form action="history" method="post" name="history">
-        <p>Select a history and an Owncloud folder:</p>
+    <form action="" method="post" name="studies">
+        <p>Select an investigation and click Get Studies.</p>
         <input type="hidden" name="api" id="api" value={{api}}>
-        <input type="hidden" name="b2user" id="b2user" value={{b2user}}>
-        <input type="hidden" name="b2pass" id="b2pass" value={{b2pass}}>
+        <input type="hidden" name="username" id="username" value={{username}}>
+        <input type="hidden" name="password" id="password" value={{password}}>
+        <input type="hidden" name="storage" id="storage" value={{storage}}>
+        <input type="hidden" name="server" id="server" value={{server}}>
+        <select id="inv" name="inv" class="select-workflow">
+            <optgroup label="Investigations">
+                <option id="si" disabled selected value="{{ inv }}">{{ inv }}</option>
+                {%for investigation in investigations %}
+                    <option value="{{ investigation }}">{{ investigation }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+        <button id="index_buttons" onclick="document.studies.submit()">Get studies</button>
+    </form>
+    <br />
+    <form action="history" method="post" name="history">
+        <p>
+            Select a history and a study. <br />
+            Click Send history to Owncloud to store your history.
+        </p>
+        <input type="hidden" name="api" id="api" value={{api}}>
+        <input type="hidden" name="username" id="username" value={{username}}>
+        <input type="hidden" name="password" id="password" value={{password}}>
+        <input type="hidden" name="storage" id="storage" value={{storage}}>
+        <input type="hidden" name="server" id="server" value={{server}}>
+        <input type="hidden" name="inv" id="inv" value={{inv}}>
         <select id="history" name="history" class="select-workflow">
             <optgroup label="Histories">
                 {%for history in histories %}
@@ -172,9 +196,9 @@
             </optgroup>
         </select>
         <select id="folder" name="folder" class="select-workflow">
-            <optgroup label="Investigations">
-                {%for investigation in investigations %}
-                <option value="{{ investigation }}">{{ investigation }}</option>
+            <optgroup label="Studies">
+                {%for study in studies %}
+                <option value="{{ study }}">{{ study }}</option>
                 {% endfor %}
             </optgroup>
         </select>
