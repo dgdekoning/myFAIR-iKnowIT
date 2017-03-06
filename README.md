@@ -30,13 +30,13 @@ To install myFAIR on your existing Virtual Machine follow these steps:
 
 1. Install all dependencies.
 2. Download or clone myFAIR to your home directory. The latest version can be found [here](https://github.com/ErasmusMC-Bioinformatics/myFAIR).
-3. Change the Galaxy server setting by changing the **galaxy.ini.sample** file. Change the port to 8000 and change the host to 0.0.0.0
-4. Run the server by opening the terminal and type: **myFAIR/manage.py runserver 0.0.0.0:8080** (please make sure manage.py have the right permissions: **chmod+x manage.py**)
+3. Change the Galaxy server setting by changing the **galaxy.ini.sample** file. Change the port to 8000 (change port if needed) and change the host to 0.0.0.0
+4. Run the server by opening the terminal and type: **myFAIR/manage.py runserver 0.0.0.0:8080 (change port if needed)** (please make sure manage.py have the right permissions: **chmod +x manage.py**)
 5. To run the Apache Fuseki Server open the terminal and type:  **fuseki location/fuseki start**
 7. Create a new dataset in Fuseki called "ds".
 8. Start the Galaxy server by opening the terminal and type: **galaxy location/run.sh**
 9. Download the Gemini workflow by importing a workflow using this url: https://bioinf-galaxian.erasmusmc.nl/galaxy/u/rick/w/training-gemini-vcfanalysis-11112016/json.
-10. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page.
+10. Test if 127.0.0.1:8080(or other chosen port) shows the myFAIR login page and that 127.0.0.1:8000(or other chosen port) shows the Galaxy page. To test fuseki go to 127.0.0.1:3030 and see if there is a green circle next to "Server status".
 11. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
 
 After these steps, you can run the myFAIR analysis.
@@ -60,7 +60,7 @@ In order to run the myFAIR analysis you need to follow these steps:
 
 1. Follow the Installation Instructions.
 2. Open or download a browser (Firefox or Chrome recommended).
-3. Go to the local Galaxy page: 127.0.0.1:8000
+3. Go to the local Galaxy page: 127.0.0.1:8000 (if selected other port please make sure the url is correct)
 4. Login to your account or create a new account by clicking "User" and then clicking "Register".
 5. Get the API Key from your account. If you do not have an API Key visible for you, create one.
 6. Visit the B2DROP or page and create a folder where you can put your datafiles. You can also use the bioinf-galaxian Owncloud if you have an account.
@@ -69,7 +69,7 @@ In order to run the myFAIR analysis you need to follow these steps:
     * Add a folder with the name of your study.
     * Add the .vcf and .ped file to the study folder.
     If you are using the GEO data matrix, please put that file in a folder.
-7. Visit the myFAIR analysis page on 127.0.0.1:8080
+7. Visit the myFAIR analysis page on 127.0.0.1:8080 (if selected other port please make sure the url is correct)
 8. Login using your Galaxy API Key and your B2DROP or bioinf-galaxian credentials.
 9. Upload files to the Fuseki server:
     * Click on the "Upload Files" link.
@@ -123,15 +123,15 @@ In order to run the myFAIR analysis you need to follow these steps:
     *   Then click on the "send to galaxy" button to start sending the files to a new history and running the selected workflow.
 12. A cat will appear to let you know that the files are being send to Galaxy and that the workflow is running (if you have selected a workflow).
 A checkmark will appear when the files are send to galaxy and the workflow is finished (if you selected a workflow).
-If something went wrong (workflow failed, not selected a file) or you get timed-out, an error message will appear.
+If something went wrong (workflow failed, not selected a file or you get timed-out) an error message will appear.
 13. If you do not want to use a workflow you can choose "Use Galaxy" to only send the datafiles to Galaxy and work with the files directly in Galaxy.
-14. You can visit the Galaxy page to see if the workflow is running by going to http://127.0.0.1:8000 or go to the next step.
+14. You can visit the Galaxy page to see if the workflow is running by going to http://127.0.0.1:8000 (if selected other port please make sure the url is correct) or go to the next step.
 
 # <a name="using-geo"></a> Using GEO files
 To split GEO files and send only specific samples to a new Galaxy history follow these steps:
 
 1. Download the GSE7621_series_matrix.txt files from ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE7nnn/GSE7621/matrix/
-2. Place the data matrix in a study folder in B2DROP or bioinf-galaxian Owncloud (make sure that the study folder is in a investigation folder).
+2. Place the data matrix in a study folder in B2DROP or bioinf-galaxian Owncloud (make sure that the study folder is in an investigation folder).
 3. Index the data matrix by clicking on the Upload Files link. Then selecting the investigation folder where the study is located and click the "See studies" button. Select the study with the data matrix, then select the matrix file as a datafile and click on the "Store Triples" button. (If you already have a metadata file based on the data matrix please select this file to be metadata. Step 4 will be skipped if you have selected this option.)
 4. The metadata will be created automatically and uploaded to the same folder as the data matrix. After this is done you will be redirected to the homepage.
 5. Select the "Get samples from study" option.
@@ -159,8 +159,10 @@ The following steps can be used to view the results of your analysis.
 # <a name="store-history"></a> Store your history
 myFAIR will not upload your results to Owncloud or B2DROP when there was no workflow used. In order to send your results to Owncloud or B2DROP to make them searchable follow these steps:
 
-1. Select the history you want to send to Owncloud.
-2. Select the folder you want to store the results in.
+1. Choose an investigation folder in the dropdown menu (top level folder).
+2. Click the "Get studies" button to find all studies in the investigation.
+3. Select the history you want to store in the Owncloud folder.
+4. Select the study you want to store the results in (sub-level folder in the investigation folder).
 3. Click on the "Send history to Owncloud" button.
 4. A new page will appear telling you the results are stored and are now searchable in myFAIR.
 5. Follow the "See results" steps to view your results.
