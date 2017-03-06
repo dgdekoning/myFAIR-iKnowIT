@@ -103,19 +103,25 @@ var TEMPLATE_QUERIES = {
                     "}" +
                     "ORDER BY (?investigation)"
         },
-        8 : {
+        8: {
+            text : '-------------------------------------------------------------------------------------------------' +
+                   '-------------------------------------------------------------------------------------------------' +
+                   '-------------------------------------------------------------------------------------------------',
+        },
+        9 : {
             text : 'Get results from study',
             variables: ['study'],
-            query : "SELECT DISTINCT (?s as ?id) ?resultid ?investigation ?study ?workflow FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+            query : "SELECT DISTINCT (?s as ?id) ?resultid ?investigation ?study ?date ?workflow FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
                     "VALUES (?study) {('#study#')}{" +
-                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+//                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#results_id> ?resultid ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?study ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#investigation_id> ?investigation ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#workflow> ?workflow ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#date> ?date ." +
                         "}" +
                     "}" +
-                    "ORDER BY (?results)"
+                    "ORDER BY (?date)"
         },
         };
 var VARIABLE_QUERIES = {
