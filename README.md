@@ -162,7 +162,7 @@ myFAIR will not upload your results to Owncloud or B2DROP when there was no work
 1. Choose an investigation folder in the dropdown menu (top level folder).
 2. Click the "Get studies" button to find all studies in the investigation.
 3. Select the history you want to store in the Owncloud folder.
-4. Select the study you want to store the results in (sub-level folder in the investigation folder).
+4. Select the study you want to store the results in (sub folder in the investigation folder).
 3. Click on the "Send history to Owncloud" button.
 4. A new page will appear telling you the results are stored and are now searchable in myFAIR.
 5. Follow the "See results" steps to view your results.
