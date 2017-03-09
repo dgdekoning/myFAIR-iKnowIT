@@ -121,7 +121,7 @@ var TEMPLATE_QUERIES = {
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#date> ?date ." +
                         "}" +
                     "}" +
-                    "ORDER BY (?date)"
+                    "ORDER BY DESC (?date)"
         },
         };
 var VARIABLE_QUERIES = {
