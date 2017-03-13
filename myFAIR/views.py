@@ -94,7 +94,6 @@ def index(request):
                 inv_folders = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
                     "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
-            # if inv_folders:
             for inv in inv_folders:
                 if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                     new = inv.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
@@ -109,7 +108,6 @@ def index(request):
                 elif request.session.get('storage') == "https://b2drop.eudat.eu/remote.php/webdav":
                     new = oc.replace('/remote.php/webdav/', '').replace('/', '').replace(investigation, '')
                     folders.append(new)
-            # if investigation != "":
             folders = filter(None, folders)
             investigations = filter(None, investigations)
             if not inv_folders:
@@ -124,7 +122,6 @@ def index(request):
             hist = json.dumps(history)
             his = json.loads(hist)
             newhistid = his[0]['id']
-            newhist = gi.histories.show_history(newhistid)
             return render(request, 'home.html',
                                       context={'workflows': workflows, 'histories': his, 'user': gusername, 'api': api,
                                                'username': username, 'password': password, 'server': server,
@@ -142,9 +139,9 @@ Get all the samples that are selected.
 @csrf_exempt
 def samples(request):
     samples = request.POST.get('samples')
+    sampleselect = []
     if samples is not None or samples != "[]":
         sample = samples.split(',')
-        sampleselect = []
         for sam in sample:
             sampleselect.append(sam.replace('[', '').replace('"', '').replace(']', ''))
         return render(request, 'home.html', context={'samples': sampleselect})
@@ -158,9 +155,9 @@ Delete triples based on study name.
 def modify(request):
     if request.POST.get('dstudy') != "":
         commands.getoutput(
-        "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" + request.session['username'].replace('@', '') +
-        "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" + request.session['username'].replace('@', '') +
-        "#group_id> ?group . FILTER(?group = \"" + request.POST.get('dstudy') + "\") ?s ?p ?o }'")
+            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" + request.session['username'].replace('@', '') +
+            "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" + request.session['username'].replace('@', '') +
+            "#group_id> ?group . FILTER(?group = \"" + request.POST.get('dstudy') + "\") ?s ?p ?o }'")
     elif request.POST.get('dinvestigation') != "":
         commands.getoutput(
             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" + request.session['username'].replace('@', '') +
@@ -322,7 +319,6 @@ def store(request):
         else:
             pid = datafile
             metadata = metadata.split(',')
-            line = ""
             if metadata is not None:
                 for m in metadata:
                     mfile = m.replace('[', '').replace(']', '').replace('"', '').replace(' ', '')
@@ -414,7 +410,7 @@ def get_input_data(api, server):
     datasets = [dataset for dataset in hist_contents if not dataset['deleted']]
     for dataset in datasets:
         inputs.append(dataset['id'])
-        datacount+=1
+        datacount += 1
     return inputs, datacount
 
 
@@ -437,7 +433,6 @@ def createMetadata(request, datafile):
         samples = filter(None, samples)
         tfile.seek(0)
         with open("meta.txt", "w") as meta:
-            headers = []
             for i in range(0, len(samples)):
                 for line in tfile:
                     if "!Sample" in line:
@@ -654,8 +649,6 @@ def upload(request):
             datamap = dict()
             mydict = {}
             jsonwf = gi.workflows.export_workflow_json(workflowid)
-            jwf = json.dumps(jsonwf)
-            wf = json.loads(jwf)
             for i in range(len(jsonwf["steps"])):
                 if jsonwf["steps"][str(i)]["name"] == "Input dataset":
                     label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
@@ -665,7 +658,7 @@ def upload(request):
                 in_count += 1
             gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
             gi.workflows.export_workflow_to_local_path(workflowid, "", True)
-            datafiles = get_output(request.session.get('api'), request.session.get('server'), workflowid)
+            datafiles = get_output(request.session.get('api'), request.session.get('server'))
             store_results(
                 1, datafiles, request.session.get('server'), request.session.get('username'), request.session.get('password'), 
                 request.session.get('storage'), groups, resultid, investigations, date)
@@ -686,10 +679,10 @@ def upload(request):
 Store input and output files created or used in a workflow.
 """
 def store_results(column, datafiles, server, username, password, storage, groups, resultid, investigations, date):
-    o=0
+    o = 0
     for name in datafiles[column]:
         cont = commands.getoutput("curl -s -k " + server+datafiles[column-1][o])
-        old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) +  "_" + name.replace('/', '_').replace(' ', '_')
+        old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + name.replace('/', '_').replace(' ', '_')
         with open(old_name, "w") as outputfile:
             outputfile.write(cont)
         new_name = sha1sum(old_name) + "_" + old_name
@@ -725,7 +718,7 @@ def store_results(column, datafiles, server, username, password, storage, groups
                         resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
                     username.replace('@', '') + "#date> \"" + date + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
         commands.getoutput("rm " + new_name)
-        o+=1
+        o += 1
 
 
 """
@@ -738,8 +731,8 @@ def ga_store_results(username, password, workflowid, storage, resultid, groups, 
             os.rename(filename, new_name)
             for i in investigations:
                 for g in groups:
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + 
-                    storage + "/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " +
+                                       storage + "/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + filename)
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/"+
                         username.replace('@', '')+"> { <http://127.0.0.1:3030/"+str(resultid)+"> <http://127.0.0.1:3030/ds/data?graph="+
@@ -756,8 +749,8 @@ Store results in triple store that have been created withoud using a workflow.
 """
 def ug_store_results(api, server, workflowid, username, password, storage, groups, investigations, date):
     resultid = uuid.uuid1()
-    outputs = get_output(api, server, workflowid)
-    n=0
+    outputs = get_output(api, server)
+    n = 0
     for iname in outputs[1]:
         cont = commands.getoutput("curl -s -k " + server+outputs[0][n])
         old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + iname
@@ -803,7 +796,7 @@ def ug_store_results(api, server, workflowid, username, password, storage, group
                         resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
                     username.replace('@', '') + "#date> \"" + date + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
         commands.getoutput("rm " + new_name)
-        n+=1
+        n += 1
 
 
 """
@@ -834,9 +827,6 @@ def show_results(request):
     workflow = []
     wf = False
     if request.method == 'POST':
-        investigations = request.POST.get('investigations')
-        group = request.POST.get('group')
-        resultid = request.POST.get('resultid')
         request.session['stored_results'] = request.POST
         return render_to_response('results.html', context={'outputs': out})
     else:
@@ -921,17 +911,16 @@ def logout(request):
 Get all inputs and outputs from a Galaxy workflow.
 This information will be used to store the files in Owncloud.
 """
-def get_output(api, server, workflowid):
+def get_output(api, server):
     if api is None:
         return HttpResponseRedirect("/")
     else:
         gi = GalaxyInstance(url=server, key=api)
-        workflow = workflowid
         historyid = get_history_id(api, server)
         inputs = []
         input_ids = []
         outputs = []
-        time.sleep(20)
+        time.sleep(30)
         hist = gi.histories.show_history(historyid)
         state = hist['state_ids']
         dump = json.dumps(state)
@@ -954,7 +943,6 @@ def get_output(api, server, workflowid):
         for i in inputs:
             iug = gi.datasets.show_dataset(i, deleted=False, hda_ldda='hda')
             input_ids.append(iug)
-        ug_context = {'outputs': outputs, 'inputs': input_ids, 'hist': hist, 'server': server}
         in_url = []
         in_name = []
         out_url = []
@@ -992,7 +980,6 @@ def store_history(request):
         resultid = uuid.uuid1()
         if request.method == 'POST':
             historyid = request.POST.get('history')
-            pid = request.POST.get('pid')
             inputs = []
             input_ids = []
             output = []
@@ -1073,11 +1060,10 @@ def read_workflow(filename):
     data = json.loads(json_data)
     steps = data["steps"]
     steplist = []
-    datalist = []
     count=0
     for s in steps:
         steplist.append(steps[str(count)])
-        count+=1
+        count += 1
     commands.getoutput("rm " + filename)
     return steplist
 
@@ -1091,7 +1077,6 @@ def rerun_analysis(request):
     workflowid = workflowid.replace('"', '')
     resultid = request.POST.get('resultid')
     gi = GalaxyInstance(url=request.session.get('server'), key=request.session.get('api'))
-    inputs = request.POST.get('inputs')
     urls = request.POST.get('urls')
     urls = urls.split(',')
     gi.histories.create_history(name=resultid)
@@ -1112,8 +1097,6 @@ def rerun_analysis(request):
         datamap = dict()
         mydict = {}
         jsonwf = gi.workflows.export_workflow_json(workflowid)
-        jwf = json.dumps(jsonwf)
-        wf = json.loads(jwf)
         for i in range(len(jsonwf["steps"])):
             if jsonwf["steps"][str(i)]["name"] == "Input dataset":
                 label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
