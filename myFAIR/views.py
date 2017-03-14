@@ -94,7 +94,6 @@ def index(request):
                 inv_folders = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
                     "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
-            print inv_folders
             for inv in inv_folders:
                 if request.session.get('storage') == "https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav":
                     new = inv.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
