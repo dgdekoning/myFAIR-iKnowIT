@@ -3,25 +3,11 @@
  * Code licensed under the Apache License v2.0.
  * For details, see http://www.apache.org/licenses/LICENSE-2.0.
  */
-.navbar-fixed-top .nav {
-    padding: 15px 0;
-}
 @media(min-width:768px) {
     body {
         padding-top: 40px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
         font-size: 9pt;
     }
-}
-.navbar-inverse{
-    background-color: #2952a3;
-    border-color: #2952a3;
-}
-.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form {
-    border-color: #2952a3;
-}
-.navbar-inverse .navbar-nav>li>a {
-    color: #EEE;
-    font-weight: bold;
 }
 .table {
     width: 100%;
@@ -52,7 +38,7 @@
     cursor: pointer;
 }
 #login-button:hover {
-    background-color: #86CEF4;
+    background-color: #d9edf7;
     color: #000;
 }
 #login-button:active {
@@ -62,105 +48,58 @@
 }
 option {
     height:18px;
-    text-indent:30px;
+    text-indent:20px;
     font-size: 100%;
-    background-image:url(../images/dtl-tab-icon.png);
-    background-repeat:no-repeat;
-    background-position:3px 0;
-}
-/*
-Voilet color button
-*/
-.btn-voilet {
-  color: #000000;
-  background-color: #86CEF4;
-  border-color: #21317F;
-  font-size: 10pt;
-}
-.btn-voilet:hover,
-.btn-voilet:focus,
-.btn-voilet:active,
-.btn-voilet.active,
-.open .dropdown-toggle.btn-voilet {
-  color: #000000;
-  background-color: #86CEF4;
-  border-color: #21317F;
-  font-size: 10pt;
-}
-.btn-voilet:active,
-.btn-voilet.active,
-.open .dropdown-toggle.btn-voilet {
-  background-image: none;
-}
-.btn-voilet.disabled,
-.btn-voilet[disabled],
-fieldset[disabled] .btn-voilet,
-.btn-voilet.disabled:hover,
-.btn-voilet[disabled]:hover,
-fieldset[disabled] .btn-voilet:hover,
-.btn-voilet.disabled:focus,
-.btn-voilet[disabled]:focus,
-fieldset[disabled] .btn-voilet:focus,
-.btn-voilet.disabled:active,
-.btn-voilet[disabled]:active,
-fieldset[disabled] .btn-voilet:active,
-.btn-voilet.disabled.active,
-.btn-voilet[disabled].active,
-fieldset[disabled] .btn-voilet.active {
-  background-color: #86CEF4;
-  border-color: #21317F;
-  font-size: 10pt;
-}
-.btn-voilet .badge {
-  color: #86CEF4;
-  background-color: #000000;
-  font-size: 10pt;
 }
 
-/*
-Red color button
-*/
-.btn-red {
+.btn-option {
   color: #000000;
-  background-color: #86CEF4;
+  background-color: #d9edf7;
+  border-color: #21317F;
+  font-size: 10pt;
+  cursor: pointer;
+}
+.btn-process{
+  color: #000000;
+  background-color: #d9edf7;
   border-color: #21317F;
   font-size: 10pt;
 }
-.btn-red:hover,
-.btn-red:focus,
-.btn-red:active,
-.btn-red.active,
-.open .dropdown-toggle.btn-red {
-  color: #ffffff;
-  background-color: #21317F;
-  border-color: #86CEF4;
+.btn-process:hover,
+.btn-process:focus,
+.btn-process:active,
+.btn-process.active,
+.open .dropdown-toggle.btn-process {
+  color: #000000;
+  background-color: #86CEF4;
+  border-color: #21317F;
 }
-.btn-red:active,
-.btn-red.active,
-.open .dropdown-toggle.btn-red {
+.btn-process:active,
+.btn-process.active,
+.open .dropdown-toggle.btn-process {
   background-image: none;
 }
-.btn-red.disabled,
-.btn-red[disabled],
-fieldset[disabled] .btn-red,
-.btn-red.disabled:hover,
-.btn-red[disabled]:hover,
-fieldset[disabled] .btn-red:hover,
-.btn-red.disabled:focus,
-.btn-red[disabled]:focus,
-fieldset[disabled] .btn-red:focus,
-.btn-red.disabled:active,
-.btn-red[disabled]:active,
-fieldset[disabled] .btn-red:active,
-.btn-red.disabled.active,
-.btn-red[disabled].active,
-fieldset[disabled] .btn-red.active {
-  background-color: #21317F;
-  border-color: #86CEF4;
+.btn-process.disabled,
+.btn-process[disabled],
+fieldset[disabled] .btn-process,
+.btn-process.disabled:hover,
+.btn-process[disabled]:hover,
+fieldset[disabled] .btn-process:hover,
+.btn-process.disabled:focus,
+.btn-process[disabled]:focus,
+fieldset[disabled] .btn-process:focus,
+.btn-process.disabled:active,
+.btn-process[disabled]:active,
+fieldset[disabled] .btn-process:active,
+.btn-process.disabled.active,
+.btn-process[disabled].active,
+fieldset[disabled] .btn-process.active {
+  background-color: #86CEF4;
+  border-color: #d9edf7;
 }
-.btn-red .badge {
-  color: #21317F;
-  background-color: #ffffff;
+.btn-process .badge {
+  color: #86CEF4;
+  background-color: #000000;
 }
 #select, #show_results {
     width: 100%;
@@ -171,7 +110,7 @@ fieldset[disabled] .btn-red.active {
     font-size: 10pt;
     min-width: 10%;
     max-width: 50%;
-    background-color: #86CEF4;
+    background-color: #d9edf7;
 }
 .select-workflow optgroup {
     font-size: 10pt;
@@ -189,12 +128,9 @@ fieldset[disabled] .btn-red.active {
     font-size: 10pt;
     min-width: 10%;
     max-width: 25%;
-    background-color: #86CEF4;
+    background-color: #d9edf7;
 }.select-folder optgroup {
     font-size: 10pt;
-}
-#selecttype {
-    width: 100%;
 }
 #index_buttons {
     box-shadow: 0 2px 6px 0 rgba(0,0,0,0.24), 0 4px 8px 0 rgba(0,0,0,0.19);
@@ -209,17 +145,17 @@ fieldset[disabled] .btn-red.active {
     cursor: pointer;
 }
 #index_buttons:hover {
-    background-color: #86CEF4;
+    background-color: #d9edf7;
     color: #000;
 }
 #index_buttons:active {
-  background-color: #86CEF4;
+  background-color: #d9edf7;
   box-shadow: 0 0px 0px rgba(0,0,0,0.0), 0 0px 0px 0 rgba(0,0,0,0.0);
   outline: none;
 }
 #login {
     float: left;
-    background-color: #86CEF4;
+    background-color: #d9edf7;
     margin-left: 20px;
     padding: 10px;
     font-size: 9pt;
