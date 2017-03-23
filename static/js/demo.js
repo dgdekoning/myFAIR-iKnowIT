@@ -103,7 +103,6 @@ document.getElementById("process").onclick = function () {
     var selected = $("#template").val();
     var query = TEMPLATE_QUERIES[selected].query
     var isValueMissing = false;
-
     //Replace variable values in the query
     TEMPLATE_QUERIES[selected].variables.forEach(function (entry) {
         var selectedValue = null;
@@ -193,7 +192,11 @@ function fillTable(result) {
                     }
                 }
                 else {
-                    table += '<td><span>' + displayName + '</span></td>';
+                    if (displayName.indexOf("http://") >= 0 || displayName.indexOf("https://") >= 0) {
+                        table += '<td><span><a target="_blank" href="' + displayName + '">' + displayName + '</a></span></td>';
+                    } else {
+                        table += '<td><span>' + displayName + '</span></td>';
+                    }
                 }
                 // Start if head is group
                 if (head === "sample" && rownr >= 2) {
@@ -253,7 +256,6 @@ function fillTable(result) {
             '<button id="index_buttons" onclick="postdata(\'group\')">send to galaxy</button>'
         );
     }
-
     // Sort table
     $('th').click(function(){
         var table = $(this).parents('table').eq(0)
@@ -275,7 +277,6 @@ function fillTable(result) {
         $("#results_table").addClass('hidden');
     }
 }
-
 function postdata(g) {
     document.getElementById('loading').style.display = "block";
     var workflowid = document.getElementById('workflow').value;
@@ -436,36 +437,6 @@ function getrow(r) {
     str3 = str3 + z;
     str4 = str4 + i;
     return [str, str2, str3, str4];
-}
-function getsamples() {
-    var samples = new Array;
-    var samplesb = new Array;
-    var values = new Array;
-    var valuesb = new Array;
-    $("input:checkbox[name=samplea]:checked").each(function(){
-        samples.push($(this).val());
-    });
-    $("input:checkbox[name=sampleb]:checked").each(function(){
-        samplesb.push($(this).val());
-    });
-    var jsonSamples = JSON.stringify(samples);
-    var jsonSamplesb = JSON.stringify(samplesb);
-    sample = jsonSamples.split(",");
-    for (var i = 0; i < samples.length; i++) {
-        values.push(Math.floor(Math.random() * 10) + 1);
-    }
-    for (var i = 0; i < samplesb.length; i++) {
-        valuesb.push(Math.floor(Math.random() * 10) + 1);
-    }
-    $.ajax({
-            type: 'POST',
-            url: "samples/",
-            data: {'samples': jsonSamples},
-            success: function (data) {
-                makeplot(samples, samplesb, values, valuesb);
-            },
-            error: function(data) {},
-    });
 }
 function rerun_analysis() {
     wid = document.getElementById("workflowid").innerText; 

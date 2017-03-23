@@ -54,42 +54,54 @@
         <input type="hidden" name="selected_study" value="{{ sstudy }}">
         <input type="hidden" id="datalist" name="datalist" value="">
         <input type="hidden" id="metalist" name="metalist" value="">
-        <table>
-            <thead>
-            <th>Files</th>
-            <th>Data File</th>
-            <th>Metadata File</th>
-            </thead>
-            {% for file in files %}
+        {% if files != "" and files is not None %}
+            <table>
+                <thead>
+                <th>Files</th>
+                <th>Data File</th>
+                <th>Metadata File</th>
+                </thead>
+                {% for file in files %}
+                    <tr>
+                        <td>{{ file }}</td>
+                        <td>
+                            <input type="checkbox" name="d" value="{{ file }}">
+                        </td>
+                        <td>
+                            <input type="checkbox" name="m" value="{{ file }}">
+                        </td>
+                    </tr>
+                {% endfor %}
                 <tr>
-                    <td>{{ file }}</td>
+                    <td>Tag metadata:</td>
+                    <td><input type="text" id="disgenet-tag" name="disgenet-tag" placeholder="Disease"></td>
                     <td>
-                        <input type="checkbox" name="d" value="{{ file }}">
-                    </td>
-                    <td>
-                        <input type="checkbox" name="m" value="{{ file }}">
+                        <select id="edam-tag" name="edam-tag" class="select-folder">
+                            <optgroup label="EDAM entries:">
+                                <option value="Gene expression matrix">Gene expression matrix</option>
+                                <option value="RNA-seq read count analysis">RNA-seq read count analysis</option>
+                            </optgroup>
+                        </select>
                     </td>
                 </tr>
-            {% endfor %}
-        </table>
-        <script type="text/javascript" charset="utf-8">
-            function AddPostData() {
-                var datafilelist = new Array;
-                var metafilelist = new Array;
-                $("input:checkbox[name=d]:checked").each(function(){
-                    datafilelist.push($(this).val());
-                });
-                $("input:checkbox[name=m]:checked").each(function(){
-                    metafilelist.push($(this).val());
-                });
-                var datalist = JSON.stringify(datafilelist);
-                var metalist = JSON.stringify(metafilelist);
-                var formInfo = document.forms['files'];
-                formInfo.datalist.value = datafilelist
-                formInfo.metalist.value = metalist
-            }
-        </script>
-        {% if files != "" and files is not None %}
+            </table>
+            <script type="text/javascript" charset="utf-8">
+                function AddPostData() {
+                    var datafilelist = new Array;
+                    var metafilelist = new Array;
+                    $("input:checkbox[name=d]:checked").each(function(){
+                        datafilelist.push($(this).val());
+                    });
+                    $("input:checkbox[name=m]:checked").each(function(){
+                        metafilelist.push($(this).val());
+                    });
+                    var datalist = JSON.stringify(datafilelist);
+                    var metalist = JSON.stringify(metafilelist);
+                    var formInfo = document.forms['files'];
+                    formInfo.datalist.value = datafilelist
+                    formInfo.metalist.value = metalist
+                }
+            </script>
             <button id="index_buttons" onclick="AddPostData()">Store Triples</button><br />
         {% endif %}
         <br />
