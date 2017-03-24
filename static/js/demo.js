@@ -201,7 +201,7 @@ function fillTable(result) {
                 // Start if head is group
                 if (head === "sample" && rownr >= 2) {
                     table +='<td>'+
-                            '<input type="checkbox" name="samplea" value="' + displayName + '"> A' + 
+                            '<input type="checkbox" name="samplea" value="' + displayName + '"> A' +
                             // '<br />' +
                             '<input type="checkbox" name="sampleb" value="' + displayName +'"> B' +
                             '</td>';

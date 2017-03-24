@@ -13,6 +13,7 @@
     width: 100%;
     table-layout: auto;
     font-size: 9pt;
+    box-sizing: none;
 }
 .table a{
     cursor: pointer;
