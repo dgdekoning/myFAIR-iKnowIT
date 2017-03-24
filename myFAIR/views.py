@@ -96,6 +96,7 @@ def index(request):
                 storage = request.session.get('storage')
                 api = request.session.get('api')
                 server = request.session.get('server')
+                commands.getoutput("mkdir " + username)
                 oc_folders = ""
                 inv_folders = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
@@ -351,7 +352,7 @@ def store(request):
                 for m in metadata:
                     mfile = m.replace('[', '').replace(']', '').replace('"', '').replace(' ', '')
                     metafile = commands.getoutput("curl -s -k -u " + username + ":" + password + " " + mfile[1:])
-                    metaf = open('metafile.csv', 'w')
+                    metaf = open(username + '/metafile.csv', 'w')
                     metaf.write(metafile)
                     metaf.close()
                     filemeta = "metafile.csv"
@@ -360,7 +361,7 @@ def store(request):
                         filemeta = "meta.txt"
                         commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + "meta.txt" + '\'' +
                                            " " + storage + "/MYFAIR/" + inv + "/" + study + "/meta.txt")
-            with open(filemeta, 'rb') as csvfile:
+            with open(username + "/" +filemeta, 'rb') as csvfile:
                 count = 0
                 reader = csv.DictReader(csvfile)
                 cnt = 0
@@ -422,8 +423,8 @@ def store(request):
                             username.replace('@', '') + "#sex> \"" + 'Unknown' + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     count += 1
                     cnt += 1
-            commands.getoutput("rm metafile.csv")
-            commands.getoutput("rm meta.txt")
+            commands.getoutput("rm " + username + "/metafile.csv")
+            commands.getoutput("rm " + username + "/meta.txt")
         return HttpResponseRedirect('/')
 
 
@@ -466,9 +467,9 @@ def createMetadata(request, datafile):
     for f in datafile:
         filename = f.replace('[', '').replace(']', '').replace('"', '').replace(' ', '')
         cont = commands.getoutput("curl -u " + request.session.get('username') + ":" + request.session.get('password') + " -k -s " + filename[1:])
-    with open("data.txt", "w") as datafile:
+    with open(request.session.get('username') + "/data.txt", "w") as datafile:
         datafile.write(cont)
-    with open(datafile.name, "r") as tfile:
+    with open(request.session.get('username') + "/" + datafile.name, "r") as tfile:
         for line in tfile:
             if "!Sample_geo_accession" in line:
                 line = line.split('\t')
@@ -476,7 +477,7 @@ def createMetadata(request, datafile):
                     samples.append(line[x].replace('\n', ''))
         samples = filter(None, samples)
         tfile.seek(0)
-        with open("meta.txt", "w") as meta:
+        with open(request.session.get('username') + "/meta.txt", "w") as meta:
             for i in range(0, len(samples)):
                 for line in tfile:
                     if "!Sample" in line:
@@ -492,7 +493,7 @@ def createMetadata(request, datafile):
                 tfile.seek(0)
         meta.close()
     datafile.close()
-    commands.getoutput("rm data.txt")
+    commands.getoutput("rm  " + request.session.get('username') + "/data.txt")
     return meta
 
 
@@ -554,9 +555,9 @@ def make_data_files(gi, files, username, password, control, test, history_id, fi
         nfile = str(file).split('/')
         filename = nfile[len(nfile)-1]
         cont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + file)
-        with open("input_all_" + filename, "w") as dfile:
+        with open(username + "/input_all_" + filename, "w") as dfile:
             dfile.write(cont)
-        with open("input_all_" + filename, "r") as tfile:
+        with open(username + "/input_all_" + filename, "r") as tfile:
             """
             Trim file based on selected samples.
             """
@@ -566,7 +567,7 @@ def make_data_files(gi, files, username, password, control, test, history_id, fi
             samples_b = []
             linenr = 0
             if control != "[]" or test != "[]":
-                with open("input_" + filename, "w") as ndfile:
+                with open(username + "/input_" + filename, "w") as ndfile:
                     for line in tfile:
                         if linenr == 0:
                             samples_a.append(0)
@@ -599,11 +600,15 @@ def make_data_files(gi, files, username, password, control, test, history_id, fi
                             line = line.split('\t')
                             if linenr == 0:
                                 column = 0
+                                control = control.split(',')
+                                test = test.split(',')
                                 for l in line:
-                                    if l in control:
-                                        samples_a.append(column)
-                                    if l in test:
-                                        samples_b.append(column)
+                                    for c in control:
+                                        if str(c.replace('[', '').replace(']', ''). replace('"', '')) == l:
+                                            samples_a.append(column)
+                                    for t in test:
+                                        if str(t.replace('[', '').replace(']', ''). replace('"', '')) == l:
+                                            samples_b.append(column)
                                     column += 1
                             column = 0
                             for l in line:
@@ -629,6 +634,8 @@ def make_data_files(gi, files, username, password, control, test, history_id, fi
 Create new metadata files based on the selected samples or send entire file
 """
 def make_meta_files(gi, mfiles, username, password, control, test, history_id):
+    control = control.split(',')
+    test = test.split(',')
     for meta in mfiles:
         mfile = str(meta).split('/')
         mfilename = mfile[len(mfile)-1]
@@ -636,26 +643,28 @@ def make_meta_files(gi, mfiles, username, password, control, test, history_id):
             pass
         else:
             mcont = commands.getoutput("curl -u " + username + ":" + password + " -k -s " + meta)
-            with open("input_" + mfilename, "w") as metfile:
+            with open(username + "/input_" + mfilename, "w") as metfile:
                 metfile.write(mcont)
             metfile.close()
             linenr = 0
-            with open("input_" + mfilename, "r") as metadatafile:
+            with open(username + "/input_" + mfilename, "r") as metadatafile:
                 if control != "[]" or test != "[]":
-                    with open("input_classmeta.txt", "w") as nmeta:
+                    with open(username + "/input_classmeta.txt", "w") as nmeta:
                         for l in metadatafile:
                             columns = l.split('\t')
                             if len(columns) >= 2:
                                 if linenr > 0:
                                     if len(columns) >= 2:
-                                        if columns[0] in control:
-                                            l = l.replace('\n', '').replace('\r', '')
-                                            nmeta.write(l + "\tA")
-                                            nmeta.write("\n")
-                                        if columns[0] in test:
-                                            l = l.replace('\n', '').replace('\r', '')
-                                            nmeta.write(l + "\tB")
-                                            nmeta.write("\n")
+                                        for c in control:
+                                            if str(c.replace('[', '').replace(']', '').replace('"', '')) == columns[0]:
+                                                l = l.replace('\n', '').replace('\r', '')
+                                                nmeta.write(l + "\tA")
+                                                nmeta.write("\n")
+                                        for t in test:
+                                            if str(t.replace('[', '').replace(']', '').replace('"', '')) == columns[0]:
+                                                l = l.replace('\n', '').replace('\r', '')
+                                                nmeta.write(l + "\tB")
+                                                nmeta.write("\n")
                                 else:
                                     l = l.replace('\n', '').replace('\r', '')
                                     nmeta.write(l + "\tclass_id" + "\n")
@@ -724,7 +733,7 @@ def upload(request):
                                                                  request.session.get('server'))[0][in_count]}
                 in_count += 1
             gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
-            gi.workflows.export_workflow_to_local_path(workflowid, "", True)
+            gi.workflows.export_workflow_to_local_path(workflowid, request.session.get('username'), True)
             datafiles = get_output(request.session.get('api'), request.session.get('server'))
             store_results(1, datafiles, request.session.get('server'), request.session.get('username'),
                           request.session.get('password'), request.session.get('storage'),
@@ -734,7 +743,7 @@ def upload(request):
                           groups, resultid, investigations, date)
             ga_store_results(request.session.get('username'), request.session.get('password'), workflowid,
                              request.session.get('storage'), resultid, groups, investigations)
-            commands.getoutput("rm input_test")
+            commands.getoutput("rm "+ request.session.get('username') + "/input_test")
             return render_to_response('results.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid,
                                                                'server': request.session.get('server')})
         else:
@@ -752,17 +761,17 @@ def store_results(column, datafiles, server, username, password, storage, groups
     for name in datafiles[column]:
         cont = commands.getoutput("curl -s -k " + server + datafiles[column-1][o])
         old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + name.replace('/', '_').replace(' ', '_')
-        with open(old_name, "w") as outputfile:
+        with open(username + "/" + old_name, "w") as outputfile:
             outputfile.write(cont)
-        new_name = sha1sum(old_name) + "_" + old_name
-        os.rename(old_name, new_name)
+        new_name = sha1sum(username + "/" + old_name) + "_" + old_name
+        os.rename(username + "/" + old_name, username + "/" + new_name)
         for i in investigations:
             for g in groups:
                 commands.getoutput(
-                    "curl -s -k -u " + username + ":" + password + " -X MKCOL " + 
+                    "curl -s -k -u " + username + ":" + password + " -X MKCOL " +
                     storage + "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid))
                 commands.getoutput(
-                    "curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' + " " + storage +
+                    "curl -s -k -u " + username + ":" + password + " -T " + '\'' + username + "/" + new_name + '\'' + " " + storage +
                     "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
                 commands.getoutput(
                     "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
@@ -786,7 +795,8 @@ def store_results(column, datafiles, server, username, password, storage, groups
                     username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(
                         resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
                     username.replace('@', '') + "#date> \"" + date + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-        commands.getoutput("rm " + new_name)
+        commands.getoutput("rm " + username + "/" + new_name)
+        commands.getoutput("rm " + username + "/" + old_name)
         o += 1
 
 
@@ -794,24 +804,24 @@ def store_results(column, datafiles, server, username, password, storage, groups
 Store information about the Galaxy workflow file
 """
 def ga_store_results(username, password, workflowid, storage, resultid, groups, investigations):
-    for filename in os.listdir("."):
+    for filename in os.listdir(username + "/"):
         if ".ga" in filename:
-            new_name = sha1sum(filename) + "_" + filename
-            os.rename(filename, new_name)
+            new_name = sha1sum(username + "/" + filename) + "_" + filename
+            os.rename(username + "/" + filename, username + "/" + new_name)
             for i in investigations:
                 for g in groups:
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " +
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + username + "/" + new_name + " " +
                                        storage + "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" +
-                                       str(resultid) + "/" + filename)
+                                       str(resultid) + "/" + new_name)
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                         username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
-                        username.replace('@', '') + "#workflow> \"" + filename + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                        username.replace('@', '') + "#workflow> \"" + username + "/" + new_name + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                         username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
                         username.replace('@', '') + "#workflowid> \"" + workflowid + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-            commands.getoutput("rm " + new_name)
+            commands.getoutput("rm " + username + "/" + new_name)
 
 
 """
@@ -824,15 +834,15 @@ def ug_store_results(api, server, workflowid, username, password, storage, group
     for iname in outputs[1]:
         cont = commands.getoutput("curl -s -k " + server + outputs[0][n])
         old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + iname
-        with open(old_name, "w") as inputfile:
+        with open(username + "/" + old_name, "w") as inputfile:
             inputfile.write(cont)
-        new_name = sha1sum(old_name) + "_" + old_name
-        os.rename(old_name, new_name)
+        new_name = sha1sum(username + "/" + old_name) + "_" + old_name
+        os.rename(username + "/" + old_name, username + "/" + new_name)
         for i in investigations:
             for g in groups:
                 commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/MYFAIR/" +
                                    i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid))
-                commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + new_name + " " + storage +
+                commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + username + "/" + new_name + " " + storage +
                                    "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) +
                                    "/" + new_name)
                 commands.getoutput(
@@ -865,7 +875,8 @@ def ug_store_results(api, server, workflowid, username, password, storage, group
                     username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(
                         resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
                     username.replace('@', '') + "#date> \"" + date + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-        commands.getoutput("rm " + new_name)
+        commands.getoutput("rm " + username + "/" + new_name)
+        commands.getoutput("rm " + username + "/" + old_name)
         n += 1
 
 
@@ -942,7 +953,7 @@ def show_results(request):
                 cont = commands.getoutput(
                     "curl -s -k -u " + username + ":" + password + " " + storage + "/MYFAIR/" + nres[len(nres)-4] + "/" +
                     nres[len(nres)-3] + "/" + nres[len(nres)-2] + "/" + nres[len(nres)-1])
-                with open(nres[len(nres)-1], "w") as ga:
+                with open(username + "/" + nres[len(nres)-1], "w") as ga:
                     ga.write(cont)
                 workflow = read_workflow(ga.name)
                 workflowid = commands.getoutput(
@@ -967,7 +978,6 @@ def show_results(request):
                 resid = nres[len(nres)-4] + "/" + nres[len(nres)-3] + "/" + nres[len(nres)-2]
             out = filter(None, out)
             inputs = filter(None, inputs)
-
         return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow,
                         'storage': storage, 'resultid': resid, 'workflowid': wid})
 
@@ -976,6 +986,7 @@ def show_results(request):
 Remove session to log out.
 """
 def logout(request):
+    commands.getoutput("rm -r " + request.session.get('username'))
     request.session.flush()
     return HttpResponseRedirect("/")
 
@@ -1080,8 +1091,9 @@ def store_history(request):
             for u in url:
                 cont = commands.getoutput("curl -s -k " + u)
                 old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + names[count].replace('/', '_').replace(' ', '_')
-                with open(old_name, "w") as newfile:
+                with open(username + "/" + old_name, "w") as newfile:
                     newfile.write(cont)
+                print newfile.name
                 new_name = sha1sum(newfile.name) + "_" + old_name
                 os.rename(old_name, new_name)
                 count += 1
@@ -1120,7 +1132,7 @@ def store_history(request):
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                         username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
                         username.replace('@', '') + "#date> \"" + date + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
-                commands.getoutput("rm " + new_name)
+                commands.getoutput("rm " + username + "/" + new_name)
             ug_context = {'outputs': output, 'inputs': input_ids, 'hist': hist, 'server': server}
             return render(request, 'history.html', ug_context)
 
@@ -1160,10 +1172,10 @@ def rerun_analysis(request):
             "curl -s -u " + request.session.get('username') + ":" + request.session.get('password') + " " +
             request.session.get('storage') + "/MYFAIR/" + filename)
         file = filename.split('/')
-        with open(file[len(file)-1], "w") as infile:
+        with open(request.session.get('username') + "/" +file[len(file)-1], "w") as infile:
             infile.write(cont)
         gi.tools.upload_file(infile.name, history_id, file_type="auto", dbkey="?", prefix=file)
-        commands.getoutput("rm " + infile.name)
+        commands.getoutput("rm " + request.session.get('username') + "/" + infile.name)
     time.sleep(30)
     if workflowid != "0":
         in_count = 0
@@ -1198,6 +1210,9 @@ def onto(disgenet, edam):
         "SERVICE+%3Chttp%3A%2F%2Frdf.disgenet.org%2Fsparql%2F%3E+%7B%0A++++" +
         "%3Fdisease+rdf%3Atype+ncit%3AC7057+%3B%0A++++%09dcterms%3Atitle+%22" + disgenet +
         "%22%40en+.%0A%7D%0A%7D' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
+    commands.getoutput("curl http://127.0.0.1:3030/ds/query -X POST --data 'query=PREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%0APREFIX+dcterms%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E%0APREFIX+ncit%3A+%3Chttp%3A%2F%2Fncicb.nci.nih.gov%2Fxml%2Fowl%2FEVS%2FThesaurus.owl%23%3E%0APREFIX+xsd%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%0ASELECT+DISTINCT+%0A%09%3Fdisease+%0AFROM+%3Chttp%3A%2F%2Frdf.disgenet.org%3E+%0AWHERE+%7B%0A++SERVICE+%3Chttp%3A%2F%2Frdf.disgenet.org%2Fsparql%2F%3E+%7B%0A++++%3Fdisease+rdf%3Atype+ncit%3AC7057+%3B%0A+++++++++++++dcterms%3Atitle+%3Fname+.%0A++++FILTER+regex(%3Fname%2C+%22" +
+                       disgenet +
+                       "%22%2C+%22i%22)%0A%7D%0A%7D' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
     edam_id = commands.getoutput(
         "curl -s 'http://www.ebi.ac.uk/ols/api/search?q=" + edam + "&ontology=edam' 'Accept: application/json'")
     try:

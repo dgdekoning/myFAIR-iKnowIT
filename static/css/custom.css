@@ -20,6 +20,7 @@
 }
 .table td{
     white-space: normal;
+    word-wrap: break-word;
 }
 #table-login th {
     padding: 15px 32px;
