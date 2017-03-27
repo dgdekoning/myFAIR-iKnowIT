@@ -49,7 +49,7 @@ def login(request):
             err.append("No valid username or password")
             request.session.flush()
             return render_to_response('login.html', context={'error': err})
-        request.session.set_expiry(0)
+        request.session.set_expiry(86400)
         return render_to_response('home.html', context={'error': err})
     return render(request, 'login.html')
 
@@ -1210,9 +1210,6 @@ def onto(disgenet, edam):
         "SERVICE+%3Chttp%3A%2F%2Frdf.disgenet.org%2Fsparql%2F%3E+%7B%0A++++" +
         "%3Fdisease+rdf%3Atype+ncit%3AC7057+%3B%0A++++%09dcterms%3Atitle+%22" + disgenet +
         "%22%40en+.%0A%7D%0A%7D' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
-    commands.getoutput("curl http://127.0.0.1:3030/ds/query -X POST --data 'query=PREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%0APREFIX+dcterms%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E%0APREFIX+ncit%3A+%3Chttp%3A%2F%2Fncicb.nci.nih.gov%2Fxml%2Fowl%2FEVS%2FThesaurus.owl%23%3E%0APREFIX+xsd%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%0ASELECT+DISTINCT+%0A%09%3Fdisease+%0AFROM+%3Chttp%3A%2F%2Frdf.disgenet.org%3E+%0AWHERE+%7B%0A++SERVICE+%3Chttp%3A%2F%2Frdf.disgenet.org%2Fsparql%2F%3E+%7B%0A++++%3Fdisease+rdf%3Atype+ncit%3AC7057+%3B%0A+++++++++++++dcterms%3Atitle+%3Fname+.%0A++++FILTER+regex(%3Fname%2C+%22" +
-                       disgenet +
-                       "%22%2C+%22i%22)%0A%7D%0A%7D' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
     edam_id = commands.getoutput(
         "curl -s 'http://www.ebi.ac.uk/ols/api/search?q=" + edam + "&ontology=edam' 'Accept: application/json'")
     try:

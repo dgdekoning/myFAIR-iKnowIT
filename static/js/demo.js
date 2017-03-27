@@ -162,7 +162,6 @@ function fillTable(result) {
     table += '</tr></thead><tbody>'
     var rownr = 1;
     result.results.bindings.forEach(function (value) {
-
         table += '<tr>'
         if(hasCol) {
             table+='<td><button id="index_buttons" onclick="getoutput()">Show results</button></td>';
@@ -198,15 +197,12 @@ function fillTable(result) {
                         table += '<td><span>' + displayName + '</span></td>';
                     }
                 }
-                // Start if head is group
                 if (head === "sample" && rownr >= 2) {
                     table +='<td>'+
                             '<input type="checkbox" name="samplea" value="' + displayName + '"> A' +
-                            // '<br />' +
                             '<input type="checkbox" name="sampleb" value="' + displayName +'"> B' +
                             '</td>';
                 }
-                //end if head is group
             }
         });
         table += '</tr>';
