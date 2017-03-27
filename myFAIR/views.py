@@ -122,7 +122,6 @@ def index(request):
                     new = oc.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '').replace(investigation, '')
                     folders.append(new)
             folders = filter(None, folders)
-            inv_folders = filter(None, inv_folders)
             investigations = filter(None, investigations)
             if not check_folder:
                 err = "Credentials are invalid. Please try again."
@@ -135,7 +134,6 @@ def index(request):
             history = gi.histories.get_histories()
             hist = json.dumps(history)
             his = json.loads(hist)
-            newhistid = his[0]['id']
             return render(request, 'home.html',
                           context={'workflows': workflows, 'histories': his, 'user': gusername, 'api': api,
                                    'username': username, 'password': password, 'server': server,
@@ -167,18 +165,22 @@ Delete triples based on study name.
 """
 @csrf_exempt
 def modify(request):
-    if request.POST.get('dstudy') != "":
-        commands.getoutput(
-            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
-            request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
-            request.session['username'].replace('@', '') + "#group_id> ?group . FILTER(?group = \"" +
-            request.POST.get('dstudy') + "\") ?s ?p ?o }'")
-    elif request.POST.get('dinvestigation') != "":
-        commands.getoutput(
-            "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
-            request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
-            request.session['username'].replace('@', '') + "#investigation_id> ?group . FILTER(?group = \"" +
-            request.POST.get('dinvestigation') + "\") ?s ?p ?o }'")
+    if request.POST.get('ok') == 'ok':
+        if request.POST.get('dstudy') != "":
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
+                request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                request.session['username'].replace('@', '') + "#group_id> ?group . FILTER(?group = \"" +
+                request.POST.get('dstudy') + "\") ?s ?p ?o }'")
+        elif request.POST.get('dinvestigation') != "":
+            commands.getoutput(
+                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
+                request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                request.session['username'].replace('@', '') + "#investigation_id> ?group . FILTER(?group = \"" +
+                request.POST.get('dinvestigation') + "\") ?s ?p ?o }'")
+    else:
+        err = "Please check accept to delete study or investigation"
+        return render(request, "modify.html", context={'error': err})
     return HttpResponseRedirect('/')
 
 
@@ -232,8 +234,6 @@ def triples(request):
                         new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
                         studies.append(new)
             studies = filter(None, studies)
-        if request.POST.get('study') != "" and request.POST.get('study') is not None:
-            study = request.POST.get('study')
         if request.method == 'POST':
             datalist = request.POST.get('datalist')
             metalist = request.POST.get('metalist')
@@ -245,6 +245,7 @@ def triples(request):
                 files = []
                 filelist = ''
                 if request.POST.get('study') != "" and request.POST.get('study') is not None:
+                    study = request.POST.get('study')
                     filelist = commands.getoutput(
                         "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
                         " '" + request.session.get('storage') + "/MYFAIR/" + inv + "/" + study +
@@ -334,7 +335,6 @@ def store(request):
     if request.method == 'POST':
         username = request.session.get('username')
         password = request.session.get('password')
-        server = request.session.get('server')
         storage = request.session.get('storage')
         inv = request.POST.get('inv')
         study = request.POST.get('study')
@@ -342,7 +342,6 @@ def store(request):
         datafile = request.POST.get('datafile')
         disgenet = onto(request.POST.get('disgenet'), request.POST.get('edam'))[0]
         edam = onto(request.POST.get('disgenet'), request.POST.get('edam'))[1]
-        query = []
         if username == "" or username is None:
             login()
         else:
@@ -361,7 +360,7 @@ def store(request):
                         filemeta = "meta.txt"
                         commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + "meta.txt" + '\'' +
                                            " " + storage + "/MYFAIR/" + inv + "/" + study + "/meta.txt")
-            with open(username + "/" +filemeta, 'rb') as csvfile:
+            with open(username + "/" + filemeta, 'rb') as csvfile:
                 count = 0
                 reader = csv.DictReader(csvfile)
                 cnt = 0

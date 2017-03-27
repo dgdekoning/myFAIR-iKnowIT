@@ -7,6 +7,9 @@
     <br />
 </p>
 <div id="login">
+    <p style="color:red">
+        {{ error }}
+    </p>
     <form action="modify" method="post" name="delete">
         <p>Type in the study name you want to delete</p>
         <input type="text" name="dstudy" id="dstudy" placeholder="study to delete">
@@ -17,6 +20,13 @@
             to delete all studies within that investigation. <br />
         </p>
         <input type="text" name="dinvestigation" id="dinvestigation" placeholder="investigation to delete">
+        <br />
+        <br />
+        <br />
+        <p>
+            * Check the accept checkbox to delete study or investigation
+        </p>
+        <input type="checkbox" name="ok" id="ok" value="ok"> accept
     </form>
     <br />
     <button id="index_buttons" onclick="document.delete.submit()">Delete</button>
