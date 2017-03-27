@@ -181,7 +181,7 @@ function fillTable(result) {
                         var family = value["family"];
                         var group = value["group"];
                         var sex = value["sex"];
-                        var galaxy = "galaxy"
+                        var galaxy = "galaxy";
                         table += '</span></span></div></td>';
                     }
                     else {

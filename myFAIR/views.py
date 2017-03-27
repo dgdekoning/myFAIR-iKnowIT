@@ -648,7 +648,7 @@ def make_meta_files(gi, mfiles, username, password, control, test, history_id):
             metfile.close()
             linenr = 0
             with open(username + "/input_" + mfilename, "r") as metadatafile:
-                if control != "[]" or test != "[]":
+                if control[0] != "[]" or test[0] != "[]":
                     with open(username + "/input_classmeta.txt", "w") as nmeta:
                         for l in metadatafile:
                             columns = l.split('\t')
@@ -1093,7 +1093,6 @@ def store_history(request):
                 old_name = strftime("%d_%b_%Y_%H:%M:%S", gmtime()) + "_" + names[count].replace('/', '_').replace(' ', '_')
                 with open(username + "/" + old_name, "w") as newfile:
                     newfile.write(cont)
-                print newfile.name
                 new_name = sha1sum(newfile.name) + "_" + old_name
                 os.rename(old_name, new_name)
                 count += 1

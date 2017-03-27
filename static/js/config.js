@@ -8,7 +8,7 @@ var TEMPLATE_QUERIES = {
         1 : {
             text : 'Search for sample',
             variables: ['sampleid'],
-            query : "SELECT DISTINCT ?pid ?meta ?investigation ?study ?sex ?disease_iri ?method_iri ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+            query : "SELECT DISTINCT ?pid ?meta ?investigation ?study ?sex ?disease ?disease_iri ?method_iri ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
                     "VALUES (?sample) {('#sampleid#')}{" +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
@@ -16,6 +16,7 @@ var TEMPLATE_QUERIES = {
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?study ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#disease> ?disease ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#disgenet_iri> ?disease_iri ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#edam_iri> ?method_iri ." +
                         "}" +
@@ -25,7 +26,7 @@ var TEMPLATE_QUERIES = {
         2 : {
             text : 'Search for study',
             variables: ['study'],
-            query : "SELECT DISTINCT ?pid ?meta ?investigation ?study ?sex ?disease_iri ?method_iri ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
+            query : "SELECT DISTINCT ?pid ?meta ?investigation ?study ?sex ?disease ?disease_iri ?method_iri ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+"> {" +
                     "VALUES (?study) {('#study#')}{" +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
@@ -33,6 +34,7 @@ var TEMPLATE_QUERIES = {
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?study ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
+                        "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#disease> ?disease ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#disgenet_iri> ?disease_iri ." +
                         "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#edam_iri> ?method_iri ." +
                         "}" +
