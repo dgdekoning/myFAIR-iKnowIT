@@ -60,7 +60,7 @@ In order to run the myFAIR analysis you need to follow these steps:
 
 1. Follow the Installation Instructions.
 2. Open or download a browser (Firefox or Chrome recommended).
-3. Go to the local Galaxy page: 127.0.0.1:8000 (if selected other port please make sure the url is correct)
+3. Go to the local Galaxy page: 127.0.0.1:8000 (if other port is selected please make sure the url is correct)
 4. Login to your account or create a new account by clicking "User" and then clicking "Register".
 5. Get the API Key from your account. If you do not have an API Key visible for you, create one.
 6. Visit the B2DROP or page and create a folder where you can put your datafiles. You can also use the bioinf-galaxian Owncloud if you have an account.
@@ -83,39 +83,21 @@ In order to run the myFAIR analysis you need to follow these steps:
 
 10. Find your files or samples:
 
-    a. Find all available files that have been uploaded to the Fuseki server.
-    *   Select the option "Get all available files".
-    *   Click on the "Process >>" button to start searching for your files.
-    
-    b. Find all available samples that have been uploaded to the Fuseki server.
-    *   Select the option "Get all samples from all files".
-    *   Click on the "Process >>" button to start searching for your files.
-
-    c. Find your files using a sample name:
-    *   Select the option "Get file(s) from sample".
+    a. Find your files using a sample name:
+    *   Select the option "Search for sample".
     *   Enter a sample name.
     *   Click on the "Process >>" button to start searching for your files.
     
-    d. Find your files using a group name:
-    *   Select the option "Get samples from study".
+    b. Find your files using a study name:
+    *   Select the option "Search for study".
     *   Enter the name of a group.
     *   Click on the "Process >>" button to start searching for your files.
 
-    e. Find samples based on gender:
-    *   Select the option "Get samples from sex".
-    *   Enter a gender.
-    *   Click on the "Process >>" button to start searching for your files.
-    
-    f. Find samples with a specific disease:
-    *   Select the option "Get samples from disease".
+    c. Find samples with a specific disease:
+    *   Select the option "Search for disease".
     *   Enter the name of the disease.
     *   Click on the "Process >>" button to start searching for your files.
 
-    g. Find studies in an investigation:
-    *   Select the option "Get studies from investigation".
-    *   Enter the name of the investigation.
-    *   Click on the "Process >>" button to start searching for your files.
-    
 11. Send the files to Galaxy and run a workflow:
     *   After finding your files, select the "Training_gemini_vcfanalysis_11112016" workflow by clicking on the dropdown menu.
     *   Select the file you want to send and choose the options you want to use.
