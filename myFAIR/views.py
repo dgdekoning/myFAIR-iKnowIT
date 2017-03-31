@@ -1170,26 +1170,48 @@ def rerun_analysis(request):
             "curl -s -u " + request.session.get('username') + ":" + request.session.get('password') + " " +
             request.session.get('storage') + "/MYFAIR/" + filename)
         file = filename.split('/')
-        with open(request.session.get('username') + "/" +file[len(file)-1], "w") as infile:
+        with open(request.session.get('username') + "/" + file[len(file)-1], "w") as infile:
             infile.write(cont)
         gi.tools.upload_file(infile.name, history_id, file_type="auto", dbkey="?", prefix=file)
-        commands.getoutput("rm " + request.session.get('username') + "/" + infile.name)
+        commands.getoutput("rm " + infile.name)
+    oc_folders = commands.getoutput(
+        "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') + " '" + request.session.get('storage') +
+        "/MYFAIR/" + resultid +"' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+    for f in oc_folders:
+        if ".ga" in f:
+            if "/owncloud/" in request.session.get('storage'):
+                ga = f.replace('/owncloud/remote.php/webdav/MYFAIR/', '')
+            else:
+                ga = f.replace('/remote.php/webdav/MYFAIR/', '')
+            gacont = commands.getoutput(
+                "curl -s -u " + request.session.get('username') + ":" + request.session.get('password') + " " +
+                request.session.get('storage') + "/MYFAIR/" + ga)
+            ga = ga.split('/')
+            with open(request.session.get('username') + "/" + ga[len(ga)-1], "w") as gafile:
+                gafile.write(gacont)
     time.sleep(30)
     if workflowid != "0":
+        gi.workflows.import_workflow_from_local_path(gafile.name)
+        workflows = gi.workflows.get_workflows()
         in_count = 0
         datamap = dict()
         mydict = {}
-        jsonwf = gi.workflows.export_workflow_json(workflowid)
+        for workflow in workflows:
+            if "API" in workflow["name"]:
+                newworkflowid = workflow["id"]
+        jsonwf = gi.workflows.export_workflow_json(newworkflowid)
         for i in range(len(jsonwf["steps"])):
             if jsonwf["steps"][str(i)]["name"] == "Input dataset":
                 label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
-                mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
+                mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(newworkflowid, label=label)[0]
         for k, v in mydict.items():
-            datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'),
-                                                             request.session.get('server'))[0][in_count]}
+            datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'), request.session.get('server'))[0][in_count]}
             in_count += 1
-        gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
+        gi.workflows.invoke_workflow(newworkflowid, datamap, history_id=history_id)
+        gi.workflows.delete_workflow(newworkflowid)
+        commands.getoutput("rm " + gafile.name)
     return HttpResponseRedirect("/")
+
 
 
 """
