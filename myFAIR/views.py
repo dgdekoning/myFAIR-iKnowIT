@@ -250,6 +250,8 @@ def triples(request):
                         "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
                         " '" + request.session.get('storage') + "/MYFAIR/" + inv + "/" + study +
                         "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
+                else:
+                    study = ""
                 for f in filelist:
                     if "/owncloud/" in request.session.get('storage'):
                         new = f.replace('/owncloud/remote.php/webdav/MYFAIR/' + inv + "/" + study, '').replace('/', '')
@@ -297,15 +299,21 @@ def investigation(request):
             folders.append(new)
     folders = filter(None, folders)
     if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
-        oc_studies = commands.getoutput(
-            "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-            " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('folder') +
-            "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        try:
+            oc_studies = commands.getoutput(
+                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('folder') +
+                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        except TypeError:
+            oc_studies = []
     else:
-        oc_studies = commands.getoutput(
-            "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-            " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('selected_folder') +
-            "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        try:
+            oc_studies = commands.getoutput(
+                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('selected_folder') +
+                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        except TypeError:
+            oc_studies = []
     for s in oc_studies:
         if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
             if "/owncloud/" in request.session.get('storage'):
