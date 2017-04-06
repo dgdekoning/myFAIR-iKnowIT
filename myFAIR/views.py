@@ -165,22 +165,23 @@ Delete triples based on study name.
 """
 @csrf_exempt
 def modify(request):
-    if request.POST.get('ok') == 'ok':
-        if request.POST.get('dstudy') != "":
-            commands.getoutput(
-                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
-                request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
-                request.session['username'].replace('@', '') + "#group_id> ?group . FILTER(?group = \"" +
-                request.POST.get('dstudy') + "\") ?s ?p ?o }'")
-        elif request.POST.get('dinvestigation') != "":
-            commands.getoutput(
-                "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
-                request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
-                request.session['username'].replace('@', '') + "#investigation_id> ?group . FILTER(?group = \"" +
-                request.POST.get('dinvestigation') + "\") ?s ?p ?o }'")
-    else:
-        err = "Please check accept to delete study or investigation"
-        return render(request, "modify.html", context={'error': err})
+    if request.session.get('username') is not None:
+        if request.POST.get('ok') == 'ok':
+            if request.POST.get('dstudy') != "":
+                commands.getoutput(
+                    "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
+                    request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                    request.session['username'].replace('@', '') + "#group_id> ?group . FILTER(?group = \"" +
+                    request.POST.get('dstudy') + "\") ?s ?p ?o }'")
+            elif request.POST.get('dinvestigation') != "":
+                commands.getoutput(
+                    "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=WITH <http://127.0.0.1:3030/ds/data/" +
+                    request.session['username'].replace('@', '') + "> DELETE {?s ?p ?o} WHERE { ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                    request.session['username'].replace('@', '') + "#investigation_id> ?group . FILTER(?group = \"" +
+                    request.POST.get('dinvestigation') + "\") ?s ?p ?o }'")
+        else:
+            err = "Please check accept to delete study or investigation"
+            return render(request, "modify.html", context={'error': err})
     return HttpResponseRedirect('/')
 
 
