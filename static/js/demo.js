@@ -368,7 +368,7 @@ function getoutput() {
             window.location.href = "/results"
         },
         error: function (data) {
-            alert(data);
+            window.location.href = "/"
         }
     });
 }

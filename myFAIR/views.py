@@ -49,7 +49,7 @@ def login(request):
             err.append("No valid username or password")
             request.session.flush()
             return render_to_response('login.html', context={'error': err})
-        request.session.set_expiry(86400)
+        request.session.set_expiry(43200)
         return render_to_response('home.html', context={'error': err})
     return render(request, 'login.html')
 
@@ -286,54 +286,57 @@ Get studies based on the investigation selected in the indexing menu.
 """
 @csrf_exempt
 def investigation(request):
-    oc_folders = commands.getoutput(
-        "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-        " '" + request.session.get('storage') + "/MYFAIR' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-    folders = []
-    studies = []
-    for oc in oc_folders:
-        if "/owncloud/" in request.session.get('storage'):
-            new = oc.replace('/owncloud/remote.php/webdav/MYFAIR/', '').replace('/', '')
-            folders.append(new)
-        else:
-            new = oc.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '')
-            folders.append(new)
-    folders = filter(None, folders)
-    if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
-        try:
-            oc_studies = commands.getoutput(
-                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-                " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('folder') +
-                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-        except TypeError:
-            oc_studies = []
-    else:
-        try:
-            oc_studies = commands.getoutput(
-                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-                " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('selected_folder') +
-                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-        except TypeError:
-            oc_studies = []
-    for s in oc_studies:
+    if request.session.get('username') is not None:
+        oc_folders = commands.getoutput(
+            "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+            " '" + request.session.get('storage') + "/MYFAIR' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        folders = []
+        studies = []
+        for oc in oc_folders:
+            if "/owncloud/" in request.session.get('storage'):
+                new = oc.replace('/owncloud/remote.php/webdav/MYFAIR/', '').replace('/', '')
+                folders.append(new)
+            else:
+                new = oc.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '')
+                folders.append(new)
+        folders = filter(None, folders)
         if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
-            if "/owncloud/" in request.session.get('storage'):
-                new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' + request.POST.get('folder') + "/", '').replace('/', '')
-                studies.append(new)
-            else:
-                new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('folder') + "/", '').replace('/', '')
-                studies.append(new)
-        elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
-            if "/owncloud/" in request.session.get('storage'):
-                new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' +
-                                request.POST.get('selected_folder') + "/", '').replace('/', '')
-                studies.append(new)
-            else:
-                new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
-                studies.append(new)
-    studies = filter(None, studies)
-    inv = request.POST.get('folder')
-    return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
+            try:
+                oc_studies = commands.getoutput(
+                    "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                    " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('folder') +
+                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+            except TypeError:
+                oc_studies = []
+        else:
+            try:
+                oc_studies = commands.getoutput(
+                    "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                    " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('selected_folder') +
+                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+            except TypeError:
+                oc_studies = []
+        for s in oc_studies:
+            if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
+                if "/owncloud/" in request.session.get('storage'):
+                    new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' + request.POST.get('folder') + "/", '').replace('/', '')
+                    studies.append(new)
+                else:
+                    new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('folder') + "/", '').replace('/', '')
+                    studies.append(new)
+            elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
+                if "/owncloud/" in request.session.get('storage'):
+                    new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' +
+                                    request.POST.get('selected_folder') + "/", '').replace('/', '')
+                    studies.append(new)
+                else:
+                    new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                    studies.append(new)
+        studies = filter(None, studies)
+        inv = request.POST.get('folder')
+        return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
+    else:
+        return HttpResponseRedirect('/')
 
 
 """
@@ -905,89 +908,92 @@ This is based on the search results in myFAIR.
 """
 @csrf_exempt
 def show_results(request):
-    username = request.session.get('username')
-    password = request.session.get('password')
-    storage = request.session.get('storage')
-    groups = []
-    results = []
-    inputs = []
-    out = []
-    result = ""
-    workflow = []
-    wf = False
-    if request.method == 'POST':
-        request.session['stored_results'] = request.POST
-        return render_to_response('results.html', context={'outputs': out})
-    else:
-        old_post = request.session.get('stored_results')
-        investigations = old_post['investigations']
-        group = old_post['group']
-        group = group.split(',')
-        resultid = old_post['resultid']
-        resultid = resultid.split(',')
-        for g in group:
-            groups.append(g.replace('[', '').replace('"', '').replace(']', ''))
-        for r in resultid:
-            results.append(r.replace('[', '').replace('"', '').replace(']', ''))
-        for invest in investigations.split(','):
-            investigation = invest.replace('[', '').replace('"', '').replace(']', '')
-            for group in groups:  
-                if investigation != "-":
-                    oc_folders = commands.getoutput(
-                        "curl -s -X PROPFIND -u " + username + ":" + password +
-                        " '" + storage + '/MYFAIR/' + investigation + '/' + group +
-                        "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+    if request.session.get('username') is not None:
+        username = request.session.get('username')
+        password = request.session.get('password')
+        storage = request.session.get('storage')
+        groups = []
+        results = []
+        inputs = []
+        out = []
+        result = ""
+        workflow = []
+        wf = False
+        if request.method == 'POST':
+            request.session['stored_results'] = request.POST
+            return render_to_response('results.html', context={'outputs': out})
+        else:
+            old_post = request.session.get('stored_results')
+            investigations = old_post['investigations']
+            group = old_post['group']
+            group = group.split(',')
+            resultid = old_post['resultid']
+            resultid = resultid.split(',')
+            for g in group:
+                groups.append(g.replace('[', '').replace('"', '').replace(']', ''))
+            for r in resultid:
+                results.append(r.replace('[', '').replace('"', '').replace(']', ''))
+            for invest in investigations.split(','):
+                investigation = invest.replace('[', '').replace('"', '').replace(']', '')
+                for group in groups:
+                    if investigation != "-":
+                        oc_folders = commands.getoutput(
+                            "curl -s -X PROPFIND -u " + username + ":" + password +
+                            " '" + storage + '/MYFAIR/' + investigation + '/' + group +
+                            "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                    else:
+                        oc_folders = commands.getoutput(
+                            "curl -s -X PROPFIND -u " + username + ":" + password +
+                            " '" + storage + '/MYFAIR/' + group + "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                    oc_folders = filter(None, oc_folders)
+                    for folder in oc_folders:
+                        if "results_" in folder:
+                            if investigation != "-":
+                                result = commands.getoutput(
+                                    "curl -s -X PROPFIND -u " + username + ":" + password +
+                                    " '" + storage + '/MYFAIR/' + investigation + '/' + group + '/' + 'results_' + results[0] +
+                                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                            else:
+                                result = commands.getoutput(
+                                    "curl -s -X PROPFIND -u " + username + ":" + password +
+                                    " '" + storage + '/MYFAIR/' + group + '/' + 'results_' + results[0] +
+                                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+            for r in result:
+                if ".ga" in r:
+                    wf = True
+                    nres = r.split('/')
+                    cont = commands.getoutput(
+                        "curl -s -k -u " + username + ":" + password + " " + storage + "/MYFAIR/" + nres[len(nres)-4] + "/" +
+                        nres[len(nres)-3] + "/" + nres[len(nres)-2] + "/" + nres[len(nres)-1])
+                    with open(username + "/" + nres[len(nres)-1], "w") as ga:
+                        ga.write(cont)
+                    workflow = read_workflow(ga.name)
+                    workflowid = commands.getoutput(
+                        "curl -s -k http://127.0.0.1:3030/ds/query -X POST --data 'query=SELECT DISTINCT ?workflowid FROM <http://127.0.0.1:3030/ds/data/" +
+                        username.replace('@', '') + "> { VALUES (?workflow) {(\"" + ga.name + "\")}{ ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                        username.replace('@', '') + "#workflowid> ?workflowid . ?s <http://127.0.0.1:3030/ds/data?graph=" +
+                        username.replace('@', '') + "#workflow> ?workflow . } } ORDER BY (?workflowid)' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
+                    wid = json.dumps(workflowid)
+                    wfid = json.loads(workflowid)
+                    wid = json.dumps(wfid["results"]["bindings"][0]["workflowid"]["value"])
+                if not wf:
+                    wid = "0"
+                if "input_" in r:
+                    nres = r.split('/')
+                    inputs.append(nres[len(nres)-1])
                 else:
-                    oc_folders = commands.getoutput(
-                        "curl -s -X PROPFIND -u " + username + ":" + password +
-                        " '" + storage + '/MYFAIR/' + group + "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-                oc_folders = filter(None, oc_folders)
-                for folder in oc_folders:
-                    if "results_" in folder:
-                        if investigation != "-":
-                            result = commands.getoutput(
-                                "curl -s -X PROPFIND -u " + username + ":" + password +
-                                " '" + storage + '/MYFAIR/' + investigation + '/' + group + '/' + 'results_' + results[0] +
-                                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-                        else:
-                            result = commands.getoutput(
-                                "curl -s -X PROPFIND -u " + username + ":" + password +
-                                " '" + storage + '/MYFAIR/' + group + '/' + 'results_' + results[0] +
-                                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-        for r in result:
-            if ".ga" in r:
-                wf = True
-                nres = r.split('/')
-                cont = commands.getoutput(
-                    "curl -s -k -u " + username + ":" + password + " " + storage + "/MYFAIR/" + nres[len(nres)-4] + "/" +
-                    nres[len(nres)-3] + "/" + nres[len(nres)-2] + "/" + nres[len(nres)-1])
-                with open(username + "/" + nres[len(nres)-1], "w") as ga:
-                    ga.write(cont)
-                workflow = read_workflow(ga.name)
-                workflowid = commands.getoutput(
-                    "curl -s -k http://127.0.0.1:3030/ds/query -X POST --data 'query=SELECT DISTINCT ?workflowid FROM <http://127.0.0.1:3030/ds/data/" + 
-                    username.replace('@', '') + "> { VALUES (?workflow) {(\"" + ga.name + "\")}{ ?s <http://127.0.0.1:3030/ds/data?graph=" +
-                    username.replace('@', '') + "#workflowid> ?workflowid . ?s <http://127.0.0.1:3030/ds/data?graph=" +
-                    username.replace('@', '') + "#workflow> ?workflow . } } ORDER BY (?workflowid)' -H 'Accept: application/sparql-results+json,*/*;q=0.9'")
-                wid = json.dumps(workflowid)
-                wfid = json.loads(workflowid)
-                wid = json.dumps(wfid["results"]["bindings"][0]["workflowid"]["value"])
-            if not wf:
-                wid = "0"
-            if "input_" in r:
-                nres = r.split('/')
-                inputs.append(nres[len(nres)-1])
-            else:
-                nres = r.split('/')
-                out.append(nres[len(nres)-1])
-            if investigation == "-":
-                resid = nres[len(nres)-3] + "/" + nres[len(nres)-2]
-            else:
-                resid = nres[len(nres)-4] + "/" + nres[len(nres)-3] + "/" + nres[len(nres)-2]
-            out = filter(None, out)
-            inputs = filter(None, inputs)
-        return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow,
-                        'storage': storage, 'resultid': resid, 'workflowid': wid})
+                    nres = r.split('/')
+                    out.append(nres[len(nres)-1])
+                if investigation == "-":
+                    resid = nres[len(nres)-3] + "/" + nres[len(nres)-2]
+                else:
+                    resid = nres[len(nres)-4] + "/" + nres[len(nres)-3] + "/" + nres[len(nres)-2]
+                out = filter(None, out)
+                inputs = filter(None, inputs)
+            return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow,
+                            'storage': storage, 'resultid': resid, 'workflowid': wid})
+    else:
+        HttpResponseRedirect('/')
 
 
 """
@@ -1102,12 +1108,12 @@ def store_history(request):
                 with open(username + "/" + old_name, "w") as newfile:
                     newfile.write(cont)
                 new_name = sha1sum(newfile.name) + "_" + old_name
-                os.rename(old_name, new_name)
+                os.rename(username + "/" + old_name, username + "/" + new_name)
                 count += 1
                 for g in groups.split(','):
                     commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/MYFAIR/" +
                                        investigation + "/" + g.replace('"', '') + "/results_" + str(resultid))
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + new_name + '\'' +
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + username + "/" + new_name + '\'' +
                                        " " + storage + "/MYFAIR/" + investigation + "/" + g.replace('"', '') + "/results_" +
                                        str(resultid) + "/" + new_name)
                     commands.getoutput(
