@@ -2,109 +2,81 @@
 {% load staticfiles %}
 
 {% block content %}
-<div class="container">
-    <div class="navbar-header">
-        <a class="navbar-brand" href="http://www.erasmusmc.nl/" target="_blank">
-            <img src="{% static 'img/logo-erasmus.jpg' %}" alt="" class="img-thumbnail" width="154" height="136">
-        </a>
+<div class="navbar-header">
+    <div class="container">
+        <div id="menu">
+            <ul id="menubar">
+                <li><a href="/" target="_self"><img src="{% static 'img/logo-erasmus.png' %}" alt="" class="img-thumbnail" width="81.5 height="31.8"></a></li>
+                <!--<li><span class="menu-text" style="margin-left:10px"><a href="/">Home</a></span></li>-->
+                <li><span class="menu-text" style="margin-left:10px"><a href="/triples">Index your data</a></span></li>
+                <li><span class="menu-text"><a href="/delete">Delete indexed data</a></span></li>
+                <li><span class="menu-text"><a href="/logout">Logout</a></span></li>
+            </ul>
+        </div>
     </div>
-    <div class="collapse navbar-collapse navbar-right" id="bs-example-navbar-collapse-1">
-        <a class="navbar-brand" href="https://dtl-fair.atlassian.net/wiki/display/FDP/FAIR+Data+Point+Software+Specification" target="_blank">
-            <img src="{% static 'img/logo-dtl.png' %}" alt="" class="img-thumbnail" width="154" height="136">
-        </a>
-    </div>
+</div>
+<div class="container" style="margin-top:100px">
+    <span class="info" style="float:left">
+        Galaxy Server:
+        {% if "http://" in server or "https://" in server %}
+            <a href="{{server}}" target="_blank">{{server}}</a> <br />
+        {% else %}
+            {{server}} <br />
+        {% endif %}
+    Galaxy-User: {{user}} <br />
+    </span>
+    <span class="info" style="float:right">
+        Storage Location:
+        {% if "http://" in storage or "https://" in storage %}
+            <a href="{{storage}}" target="_blank">{{storage}}</a> <br />
+        {% else %}
+            {{storage}} <br />
+        {% endif %}
+    Storage-User: <span id="user">{{username}}</span> <br />
+    </span>
 </div>
 <!-- Page Content -->
 <div class="container">
     <div class="row">
         <div class="col-lg-12">
-            <div class="page-header text-center">
-                <b style="font-size: 14pt;">myFAIR Analysis @ EMC</b>
-            </div>
-            <p>
-                <span style="float:left">
-                Galaxy Server: {{server}} <br />
-                Galaxy-User: {{user}} <br />
-                </span>
-                <span style="float:right">
-                Storage Location: {{storage}} <br />
-                Storage-User: <span id="user">{{username}}</span> <br />
-                </span>
-            </p>
-            <br />
-            <p>
-                <br />
-                <br />
-                || <a href="/">Home</a>
-                || <a href="/triples">Upload Files</a>
-                || <a href="/delete">Delete from graph</a>
-                || <a href="/logout">Logout</a> ||
-                <br />
-            </p>
-            <div class="panel panel-info" id="step1">
+            <div class="panel panel-info" id="search-panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Step 1 Select query:</h3>
+                    <h3 class="panel-title">Find Data</h3>
                 </div>
                 <div class="panel-body">
-                    <select size="5" class="form-control" id="template">
-                    </select>
+                    <fieldset>
+                        <input type="text" class="form-control" name="search" id="search" list="searchDataList" placeholder="Enter sample name, disease, study name or investigation name">
+                        <datalist id="searchDataList"></datalist>
+                    </fieldset>
                 </div>
             </div>
-            <div class="panel panel-info" id="step2">
+            <div class="panel panel-info" id="search-result-panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Step 2 <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> By which value?</h3>
+                    <h3 class="panel-title">Find Results</h3>
                 </div>
                 <div class="panel-body">
-                    <div class="row" id="sampleid">
-                        <div class="col-md-4">
-                            <input class="form-control" type="text" id="sampleidOption" list="sampleidDatalist" placeholder="e.g. HG002_NA24385_son" autocomplete="off">
-                            <datalist id="sampleidDatalist"></datalist>
-                        </div>
-                    </div>
-                    <div class="row" id="study">
-                        <div class="col-md-4">
-                            <input class="form-control" type="text" id="studyOption" list="studyDatalist" placeholder="e.g. {{ user }}" autocomplete="off">
-                            <datalist id="studyDatalist"></datalist>
-                        </div>
-                    </div>
-                    <div class="row" id="sex">
-                        <div class="col-md-4">
-                            <input class="form-control" type="text" id="sexOption" list="sexDatalist" placeholder="e.g. male" autocomplete="off">
-                            <datalist id="sexDatalist"></datalist>
-                        </div>
-                    </div>
-                    <div class="row" id="disease">
-                        <div class="col-md-4">
-                            <input class="form-control" type="text" id="diseaseOption" list="diseaseDatalist" placeholder="e.g. Parkinsons Disease" autocomplete="off">
-                            <datalist id="diseaseDatalist"></datalist>
-                        </div>
-                    </div>
-                    <div class="row" id="investigation">
-                        <div class="col-md-4">
-                            <input class="form-control" type="text" id="investigationOption" list="investigationDatalist" placeholder="e.g. Investigation" autocomplete="off">
-                            <datalist id="investigationDatalist"></datalist>
-                        </div>
-                    </div>
+                    <fieldset>
+                        <input type="text" class="form-control" name="search-result" id="search-result" list="resultDataList" placeholder="Enter study name or investigation name">
+                        <datalist id="resultDataList"></datalist>
+                    </fieldset>
                 </div>
-                <div class="panel-footer panel-info">
-                    <div class="row">
-                        <div class="col-md-4"></div>
-                        <div class="col-md-4">
-                            <button type="button" class="btn btn-process btn-lg btn-block has-spinner" id="process" data-btn-text="Loading...">
-                                Process <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
-                            </button>
-                        </div>
-                        <div class="col-md-4"></div>
-                    </div>
+            </div>
+            <div class="panel-footer panel-info">
+                <div>
+                    <span style="width:25%; visibility:hidden; float:left">.</span>
+                    <button type="button" class="btn btn-process btn-lg btn-block has-spinner" id="process" onclick="sparqlQuery()" style="width:50%; float:left">
+                        Search <span class="glyphicon glyphicon-forward" aria-hidden="true"></span>
+                    </button>
+                    <span style="width:25%; visibility:hidden; float:left">.</span>
                 </div>
             </div>
             <div class="alert alert-danger fade in" id="errorPanel">
             </div>
             <div class="alert alert-info fade in" id="infoPanel">
             </div>
-            <div class="panel panel-info" id="step3">
+            <div class="panel panel-info" id="results">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Result</h3>
+                    <h3 class="panel-title">Search results</h3>
                 </div>
                 <div class="panel-body">
                     <div id="workflow_select">
@@ -117,17 +89,24 @@
                             {% endfor %}
                             </optgroup>
                         </select>
-                        <input type="checkbox" value="true" name="onlydata" id="onlydata" />Send datafile only
+                        <br />
+                        <br />
+                        <input type="checkbox" value="true" name="onlydata" id="onlydata" /><label for="onlydata">Send datafile only</label>
+                        <br />
+                        <input type="checkbox" value="true" name="col" id="col" /><label for="col">Make collection</label>
                     </div>
+                    <br />
+                    <br />
                     <div class="alert alert-info fade in" id="noResultPanel">
                         <p><strong> No result :</strong> Sorry no result available for these query parameters</p>
                     </div>
                     <table class="table table-striped" id="results_table">
                     </table>
+                    <br />
                     <div id="galaxy"></div>
                     <br />
                     <div id="loading" style="display:none" align="center">
-                        <img id="loadingImage" src="{% static 'img/loading.gif' %}" width="375" height="187.5">
+                        <img id="loadingImage" src="{% static 'img/loading.gif' %}" width="25%" height="25%">
                         <br />
                         <p>Please wait...This can take several minutes.</p>
                     </div>
@@ -143,6 +122,9 @@
                             Oops...wait a few seconds or reload the page to try again.
                         </p>
                     </div>
+                    <div id="show_results" style="display: none;">
+                        <button id="index_buttons" onclick="getoutput()">Show results</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,64 +132,74 @@
 </div>
 <!-- /.container -->
 {% block contentwork %}
-<div id="show_results" style="display: none;">
-    <button id="index_buttons" onclick="getoutput()">Show results</button>
-</div>
-<div id="select" style="display: block;">
-    <form action="" method="post" name="studies">
-        <p>Select an investigation and click Get Studies.</p>
-        <input type="hidden" name="api" id="api" value={{api}}>
-        <input type="hidden" name="username" id="username" value={{username}}>
-        <input type="hidden" name="password" id="password" value={{password}}>
-        <input type="hidden" name="storage" id="storage" value={{storage}}>
-        <input type="hidden" name="server" id="server" value={{server}}>
-        <select id="inv" name="inv" class="select-workflow">
-            <optgroup label="Investigations">
-                <option id="si" disabled selected value="{{ inv }}">{{ inv }}</option>
-                {%for investigation in investigations %}
-                    <option value="{{ investigation }}">{{ investigation }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-        <button id="index_buttons" onclick="document.studies.submit()">Get studies</button>
-    </form>
-    <br />
-    <form action="history" method="post" name="history">
-        <p>
-            Select a history and a study. <br />
-            Click Send history to Owncloud to store your history.
-        </p>
-        <input type="hidden" name="api" id="api" value={{api}}>
-        <input type="hidden" name="username" id="username" value={{username}}>
-        <input type="hidden" name="password" id="password" value={{password}}>
-        <input type="hidden" name="storage" id="storage" value={{storage}}>
-        <input type="hidden" name="server" id="server" value={{server}}>
-        <input type="hidden" name="inv" id="inv" value={{inv}}>
-        <select id="history" name="history" class="select-workflow">
-            <optgroup label="Histories">
-                {%for history in histories %}
-                <option value="{{ history.id }}">{{ history.name }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-        <select id="folder" name="folder" class="select-workflow">
-            <optgroup label="Studies">
-                {%for study in studies %}
-                <option value="{{ study }}">{{ study }}</option>
-                {% endfor %}
-            </optgroup>
-        </select>
-        <button id="index_buttons" onclick="document.history.submit()">Send history to Owncloud</button>
-    </form>
-    <br />
-    <br />
+<br />
+<br />
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="page-header text-center">
+                <b style="font-size: 14pt;">Store history in Owncloud</b>
+            </div>
+            <div id="select" style="display: block;">
+                <form action="" method="post" name="studies">
+                    <p>Select an investigation and click Get Studies.</p>
+                    <input type="hidden" name="api" id="api" value={{api}}>
+                    <input type="hidden" name="username" id="username" value={{username}}>
+                    <input type="hidden" name="password" id="password" value={{password}}>
+                    <input type="hidden" name="storage" id="storage" value={{storage}}>
+                    <input type="hidden" name="server" id="server" value={{server}}>
+                    <select id="inv" name="inv" class="select-workflow">
+                        <optgroup label="Investigations">
+                            <option id="si" disabled selected value="{{ inv }}">{{ inv }}</option>
+                            {%for investigation in investigations %}
+                                <option value="{{ investigation }}">{{ investigation }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    <button id="index_buttons" onclick="document.studies.submit()">Get studies</button>
+                </form>
+                <br />
+                <form action="history" method="post" name="history">
+                    <p>
+                        Select a history and a study. <br />
+                        Click Send history to Owncloud to store your history.
+                    </p>
+                    <input type="hidden" name="api" id="api" value={{api}}>
+                    <input type="hidden" name="username" id="username" value={{username}}>
+                    <input type="hidden" name="password" id="password" value={{password}}>
+                    <input type="hidden" name="storage" id="storage" value={{storage}}>
+                    <input type="hidden" name="server" id="server" value={{server}}>
+                    <input type="hidden" name="inv" id="inv" value={{inv}}>
+                    <select id="history" name="history" class="select-workflow">
+                        <optgroup label="Histories">
+                            {%for history in histories %}
+                            <option value="{{ history.id }}">{{ history.name }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    <select id="folder" name="folder" class="select-workflow">
+                        <optgroup label="Studies">
+                            {%for study in studies %}
+                            <option value="{{ study }}">{{ study }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    <button id="index_buttons" onclick="document.history.submit()">Send history to Owncloud</button>
+                </form>
+                <br />
+                <br />
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 <br />
-<div id="footer">
-    <div class="container">
-        <p class="muted credit">
-        </p>
-    </div>
-</div>
+<!--<div id="footer">-->
+    <!--<div class="container">-->
+        <!--<br />-->
+        <!--Credits here-->
+        <!--<p class="muted credit">-->
+        <!--</p>-->
+    <!--</div>-->
+<!--</div>-->
 {% endblock %}

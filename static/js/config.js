@@ -4,6 +4,7 @@
 */
 var SPARQL_ENDPOINT = 'http://localhost:3030/ds/query?query='
 var USER = document.getElementById('user').innerHTML.replace('@', '');
+var SEARCH = document.getElementById('search').innerHTML;
 var TEMPLATE_QUERIES = {
         1 : {
             text : 'Search for sample',
@@ -77,6 +78,24 @@ var TEMPLATE_QUERIES = {
                         "}" +
                     "}" +
                     "ORDER BY DESC (?date)"
+        },
+        6 : {
+        text : 'Search for sample',
+        variables: ['sampleid'],
+        query : "SELECT DISTINCT ?pid ?meta ?investigation ?study ?sex ?disease ?disease_iri ?method_iri ?sample FROM <http://127.0.0.1:3030/ds/data/"+USER+">" +
+                "WHERE {" +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#pid> ?pid ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#meta> ?meta ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#investigation_id> ?investigation ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#group_id> ?study ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sex> ?sex ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#sample_id> ?sample ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#disease> ?disease ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#disgenet_iri> ?disease_iri ." +
+                    "?s <http://127.0.0.1:3030/ds/data?graph="+USER+"#edam_iri> ?method_iri ." +
+                    "FILTER (?sample = " + SEARCH + " || ?disease = " + SEARCH + ")" +
+                    "}" +
+                "ORDER BY (?sample)"
         },
         };
 var VARIABLE_QUERIES = {

@@ -1,6 +1,18 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 {% block content %}
+<div class="navbar-header">
+    <div class="container">
+        <div id="menu">
+            <ul id="menubar">
+                <li><a href="/" target="_self"><img src="{% static 'img/logo-erasmus.png' %}" alt="" class="img-thumbnail" width="81.5 height="31.8"></a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="container" style="margin-top:100px"></div>
 <div id="login">
+    <h3 style="text-align:center;">myFAIR @ EMC login</h3>
     You need to log in to use this application. <br />
     Please log in with your Galaxy API Key and Owncloud/B2DROP credentials.<br />
     You can find your API Key by login in to the Galaxy server and click User, <br />
@@ -13,40 +25,38 @@
         <table id="table-login">
             <span style="color:red">*</span> = required fields
             <tr>
-                <td>Storage location:<span style="color:red">*</span></td>
-                <td>
-                <select name="storage" id="storage">
-                    <optgroup label="Select storage location">
-                        <option value="https://b2drop.eudat.eu/remote.php/webdav">B2DROP</option>
-                        <option value="https://bioinf-galaxian.erasmusmc.nl/owncloud/remote.php/webdav">Owncloud</option>
-                    </optgroup>
-                </select>
-                </td>
+                <td>Storage Location:<span style="color:red">*</span></td>
+                <td><input type="text" name="storage" id="storage" placeholder="i.e. https://b2drop.eudat.eu/remote.php/webdav" required></td>
             </tr>
             <tr>
                 <td>Galaxy Server:<span style="color:red">*</span></td>
-                <td><input type="text" name="server" id="server" placeholder="Enter galaxy server"></td>
+                <td><input type="text" name="server" id="server" placeholder="Enter galaxy server" required></td>
             </tr>
             <tr>
                 <td>Galaxy API Key:<span style="color:red">*</span></td>
-                <td><input type="text" name="api" id="api" placeholder="Enter your Galaxy api key"></td>
+                <td><input type="text" name="api" id="api" placeholder="Enter your Galaxy api key" required></td>
             </tr>
             <tr>
                 <td>Username:<span style="color:red">*</span></td>
-                <td><input type="text" name="username" id="username" placeholder="Enter your username"></td>
+                <td><input type="text" name="username" id="username" placeholder="Enter your username" required></td>
             </tr>
             <tr>
                 <td>Password:<span style="color:red">*</span></td>
-                <td><input type="password" name="password" id="password" placeholder="Enter your password"></td>
+                <td><input type="password" name="password" id="password" placeholder="Enter your password" required></td>
             </tr>
-        </table>
-        <br />
-        <table align="center">
             <tr>
-                <td><input id="login-button" type="submit" value="Log in to myFAIR analysis @ EMC"></td>
+                <td>&nbsp;</td>
             </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td>
+                    <input type="checkbox" name="no-expire" id="no-expire" value="yes">
+                    <label for="no-expire">Stay logged in</label>
+                    <br />
+                    <br />
+                    <input id="index_buttons" type="submit" value="Log in to myFAIR analysis @ EMC" style="margin-left:25px">
+                </td>
         </table>
-        <br />
     </form>
 </div>
 {% endblock %}

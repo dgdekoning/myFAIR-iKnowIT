@@ -26,6 +26,7 @@ def login(request):
         storage = request.POST.get('storage')
         username = request.POST.get('username')
         password = request.POST.get('password')
+        noexpire = request.POST.get('no-expire')
         if api != "":
             request.session['api'] = api
         else:
@@ -49,7 +50,10 @@ def login(request):
             err.append("No valid username or password")
             request.session.flush()
             return render_to_response('login.html', context={'error': err})
-        request.session.set_expiry(43200)
+        if noexpire == "yes":
+            request.session.set_expiry(0)
+        else:
+            request.session.set_expiry(43200)
         return render_to_response('home.html', context={'error': err})
     return render(request, 'login.html')
 
@@ -79,17 +83,14 @@ def index(request):
                 api = request.POST.get('api')
                 server = request.POST.get('server')
                 oc_folders = commands.getoutput(
-                    "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage + "/MYFAIR/" + investigation +
+                    "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage + "/" + investigation +
                     "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
                 inv_folders = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
-                    "/MYFAIR' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                    "/' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
                 check_folder = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
                     "' | grep -oPm250 '(?<=<d:href>)[^<]+'")
-                if "MYFAIR" not in check_folder:
-                    commands.getoutput(
-                        "curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/MYFAIR/")
             else:
                 username = request.session.get('username')
                 password = request.session.get('password')
@@ -100,33 +101,34 @@ def index(request):
                 oc_folders = ""
                 inv_folders = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
-                    "/MYFAIR' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                    "/' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
                 check_folder = commands.getoutput(
                     "curl -s -X PROPFIND -u " + username + ":" + password + " '" + storage +
                     "' | grep -oPm250 '(?<=<d:href>)[^<]+'")
                 if "MYFAIR" not in check_folder:
                     commands.getoutput(
-                        "curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/MYFAIR/")
+                        "curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/")
             for inv in inv_folders:
                 if "/owncloud/" in request.session.get('storage'):
-                    new = inv.replace('/owncloud/remote.php/webdav/MYFAIR/', '').replace('/', '')
+                    new = inv.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
                     investigations.append(new)
                 else:
-                    new = inv.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '')
+                    new = inv.replace('/remote.php/webdav/', '').replace('/', '')
                     investigations.append(new)
             for oc in oc_folders:
                 if "/owncloud/" in request.session.get('storage'):
-                    new = oc.replace('/owncloud/remote.php/webdav/MYFAIR/', '').replace('/', '').replace(investigation, '')
+                    new = oc.replace('/owncloud/remote.php/webdav/', '').replace('/', '').replace(investigation, '')
                     folders.append(new)
                 else:
-                    new = oc.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '').replace(investigation, '')
+                    new = oc.replace('/remote.php/webdav/', '').replace('/', '').replace(investigation, '')
                     folders.append(new)
             folders = filter(None, folders)
             investigations = filter(None, investigations)
-            if not check_folder:
-                err = "Credentials are invalid. Please try again."
-                request.session.flush()
-                return render_to_response('login.html', context={'error': err})
+            if 'webdav' in storage:
+                if not check_folder:
+                    err = "Credentials are invalid. Please try again."
+                    request.session.flush()
+                    return render_to_response('login.html', context={'error': err})
             gi = GalaxyInstance(url=request.session.get('server'), key=request.session.get('api'))
             user = gi.users.get_current_user()
             gusername = user['username']
@@ -139,6 +141,7 @@ def index(request):
                                    'username': username, 'password': password, 'server': server,
                                    'storage': storage, 'investigations': investigations, 'studies': folders,
                                    'inv': investigation})
+
     except ConnectionError as err:
         err = "Invalid API Key"
         request.session.flush()
@@ -182,7 +185,9 @@ def modify(request):
         else:
             err = "Please check accept to delete study or investigation"
             return render(request, "modify.html", context={'error': err})
-    return HttpResponseRedirect('/')
+        return HttpResponseRedirect('/')
+    else:
+        return HttpResponseRedirect('/')
 
 
 """
@@ -205,36 +210,37 @@ def triples(request):
         inv = request.POST.get('inv')
         oc_folders = commands.getoutput(
             "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-            " '" + request.session.get('storage') + "/MYFAIR' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-        for oc in oc_folders:
-            if "/owncloud/" in request.session.get('storage'):
-                new = oc.replace('/owncloud/remote.php/webdav/MYFAIR/', '').replace('/', '')
-                folders.append(new)
-            else:
-                new = oc.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '')
-                folders.append(new)
-        folders = filter(None, folders)
-        if request.POST.get('inv') != "" and request.POST.get('inv') is not None:
-            oc_studies = commands.getoutput(
-                "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-                " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('inv') +
-                "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-            for s in oc_studies:
-                if request.POST.get('inv') != "" and request.POST.get('inv') is not None:
-                    if "/owncloud/" in request.session.get('storage'):
-                        new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' + request.POST.get('inv') + "/", '').replace('/', '')
-                        studies.append(new)
-                    else:
-                        new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('inv') + "/", '').replace('/', '')
-                        studies.append(new)
-                elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
-                    if "/owncloud/" in request.session.get('storage'):
-                        new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
-                        studies.append(new)
-                    else:
-                        new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
-                        studies.append(new)
-            studies = filter(None, studies)
+            " '" + request.session.get('storage') + "/' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        if filter(None, oc_folders):
+            for oc in oc_folders:
+                if "/owncloud/" in request.session.get('storage'):
+                    new = oc.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
+                    folders.append(new)
+                else:
+                    new = oc.replace('/remote.php/webdav/', '').replace('/', '')
+                    folders.append(new)
+            folders = filter(None, folders)
+            if request.POST.get('inv') != "" and request.POST.get('inv') is not None:
+                oc_studies = commands.getoutput(
+                    "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                    " '" + request.session.get('storage') + "/" + request.POST.get('inv') +
+                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                for s in oc_studies:
+                    if request.POST.get('inv') != "" and request.POST.get('inv') is not None:
+                        if "/owncloud/" in request.session.get('storage'):
+                            new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('inv') + "/", '').replace('/', '')
+                            studies.append(new)
+                        else:
+                            new = s.replace('/remote.php/webdav/' + request.POST.get('inv') + "/", '').replace('/', '')
+                            studies.append(new)
+                    elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
+                        if "/owncloud/" in request.session.get('storage'):
+                            new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                            studies.append(new)
+                        else:
+                            new = s.replace('/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                            studies.append(new)
+                studies = filter(None, studies)
         if request.method == 'POST':
             datalist = request.POST.get('datalist')
             metalist = request.POST.get('metalist')
@@ -249,35 +255,42 @@ def triples(request):
                     study = request.POST.get('study')
                     filelist = commands.getoutput(
                         "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-                        " '" + request.session.get('storage') + "/MYFAIR/" + inv + "/" + study +
+                        " '" + request.session.get('storage') + "/" + inv + "/" + study +
                         "' | grep -oPm100 '(?<=<d:href>)[^<]+'").split("\n")
-                else:
-                    study = ""
                 for f in filelist:
                     if "/owncloud/" in request.session.get('storage'):
-                        new = f.replace('/owncloud/remote.php/webdav/MYFAIR/' + inv + "/" + study, '').replace('/', '')
+                        new = f.replace('/owncloud/remote.php/webdav/' + inv + "/" + study, '').replace('/', '')
                         files.append(new)
                     else:
-                        new = f.replace('/remote.php/webdav/MYFAIR/' + inv + "/" + study, '').replace('/', '')
+                        new = f.replace('/remote.php/webdav/' + inv + "/" + study, '').replace('/', '')
                         files.append(new)
                 files = filter(None, files)
-                metadata = []
-                datafiles = []
-                if datalist is not None or metalist is not None:
+                if not filter(None, filelist):
                     if request.POST.get('selected_study') is not None:
                         study = request.POST.get('selected_study')
-                    datalist = datalist.split(',')
-                    metalist = metalist.split(',')
-                    for d in datalist:
-                        datafiles.append(request.session.get('storage') + "/MYFAIR/" + inv + "/" + study + "/" + d)
-                    for m in metalist:
-                        metadata.append(request.session.get('storage') + "/MYFAIR/" + inv + "/" + study + "/" + m)
-                if metadata or datafiles:
-                    return render(request, 'store.html', context={'metadata': metadata, 'datafiles': datafiles,
-                                                                  'inv': inv, 'study': study, 'edam': edam,
-                                                                  'disgenet': disgenet})
-                return render(request, 'triples.html', context={'folders': folders, 'files': files, 'studies': studies,
-                                                                'inv': inv, 'sstudy': study})
+            metadata = []
+            datafiles = []
+            if datalist is not None or metalist is not None:
+                if request.POST.get('selected_study') is not None:
+                    study = request.POST.get('selected_study')
+                datalist = datalist.split(',')
+                metalist = metalist.split(',')
+                for d in datalist:
+                    if 'webdav' not in request.session.get('storage'):
+                        datafiles.append(d)
+                    else:
+                        datafiles.append(request.session.get('storage') + "/" + inv + "/" + study + "/" + d)
+                for m in metalist:
+                    if 'webdav' not in request.session.get('storage'):
+                        metadata.append(m)
+                    else:
+                        metadata.append(request.session.get('storage') + "/" + inv + "/" + study + "/" + m)
+            if metadata or datafiles:
+                return render(request, 'store.html', context={'metadata': metadata, 'datafiles': datafiles,
+                                                              'inv': inv, 'study': study, 'edam': edam,
+                                                              'disgenet': disgenet})
+            return render(request, 'triples.html', context={'folders': folders, 'files': files, 'studies': studies,
+                                                            'inv': inv, 'sstudy': study})
         return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'investigation': inv})
 
 
@@ -289,52 +302,52 @@ def investigation(request):
     if request.session.get('username') is not None:
         oc_folders = commands.getoutput(
             "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-            " '" + request.session.get('storage') + "/MYFAIR' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-        folders = []
-        studies = []
-        for oc in oc_folders:
-            if "/owncloud/" in request.session.get('storage'):
-                new = oc.replace('/owncloud/remote.php/webdav/MYFAIR/', '').replace('/', '')
-                folders.append(new)
-            else:
-                new = oc.replace('/remote.php/webdav/MYFAIR/', '').replace('/', '')
-                folders.append(new)
-        folders = filter(None, folders)
-        if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
-            try:
-                oc_studies = commands.getoutput(
-                    "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-                    " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('folder') +
-                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-            except TypeError:
-                oc_studies = []
-        else:
-            try:
-                oc_studies = commands.getoutput(
-                    "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
-                    " '" + request.session.get('storage') + "/MYFAIR/" + request.POST.get('selected_folder') +
-                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
-            except TypeError:
-                oc_studies = []
-        for s in oc_studies:
+            " '" + request.session.get('storage') + "/' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        if filter(None, oc_folders):
+            folders = []
+            studies = []
+            oc_studies = ""
+            for oc in oc_folders:
+                if "/owncloud/" in request.session.get('storage'):
+                    new = oc.replace('/owncloud/remote.php/webdav/', '').replace('/', '')
+                    folders.append(new)
+                else:
+                    new = oc.replace('/remote.php/webdav/', '').replace('/', '')
+                    folders.append(new)
+            folders = filter(None, folders)
             if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
-                if "/owncloud/" in request.session.get('storage'):
-                    new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' + request.POST.get('folder') + "/", '').replace('/', '')
-                    studies.append(new)
-                else:
-                    new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('folder') + "/", '').replace('/', '')
-                    studies.append(new)
-            elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
-                if "/owncloud/" in request.session.get('storage'):
-                    new = s.replace('/owncloud/remote.php/webdav/MYFAIR/' +
-                                    request.POST.get('selected_folder') + "/", '').replace('/', '')
-                    studies.append(new)
-                else:
-                    new = s.replace('/remote.php/webdav/MYFAIR/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
-                    studies.append(new)
-        studies = filter(None, studies)
-        inv = request.POST.get('folder')
-        return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
+                oc_studies = commands.getoutput(
+                    "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                    " '" + request.session.get('storage') + "/" + request.POST.get('folder') +
+                    "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+            else:
+                if request.POST.get('selected_folder') is not None:
+                    oc_studies = commands.getoutput(
+                        "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') +
+                        " '" + request.session.get('storage') + "/" + request.POST.get('selected_folder') +
+                        "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+            if oc_studies != "":
+                for s in oc_studies:
+                    if request.POST.get('folder') != "" and request.POST.get('folder') is not None:
+                        if "/owncloud/" in request.session.get('storage'):
+                            new = s.replace('/owncloud/remote.php/webdav/' + request.POST.get('folder') + "/", '').replace('/', '')
+                            studies.append(new)
+                        else:
+                            new = s.replace('/remote.php/webdav/' + request.POST.get('folder') + "/", '').replace('/', '')
+                            studies.append(new)
+                    elif request.POST.get('selected_folder') != "" and request.POST.get('selected_folder') is not None:
+                        if "/owncloud/" in request.session.get('storage'):
+                            new = s.replace('/owncloud/remote.php/webdav/' +
+                                            request.POST.get('selected_folder') + "/", '').replace('/', '')
+                            studies.append(new)
+                        else:
+                            new = s.replace('/remote.php/webdav/' + request.POST.get('selected_folder') + "/", '').replace('/', '')
+                            studies.append(new)
+                studies = filter(None, studies)
+                inv = request.POST.get('folder')
+                return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
+            else:
+                return HttpResponseRedirect('/triples')
     else:
         return HttpResponseRedirect('/')
 
@@ -371,7 +384,7 @@ def store(request):
                         createMetadata(request, datafile)
                         filemeta = "meta.txt"
                         commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + "meta.txt" + '\'' +
-                                           " " + storage + "/MYFAIR/" + inv + "/" + study + "/meta.txt")
+                                           " " + storage + "/" + inv + "/" + study + "/meta.txt")
             with open(username + "/" + filemeta, 'rb') as csvfile:
                 count = 0
                 reader = csv.DictReader(csvfile)
@@ -407,7 +420,7 @@ def store(request):
                         commands.getoutput(
                             "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                             username.replace('@', '') + "> { <http://127.0.0.1:3030/" + study + "_" + str(cnt) + "> <http://127.0.0.1:3030/ds/data?graph=" +
-                            username.replace('@', '') + "#meta> \"" + storage + "/MYFAIR/" + inv + "/" + study +
+                            username.replace('@', '') + "#meta> \"" + storage + "/" + inv + "/" + study +
                             "/meta.txt" + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     else:
                         for m in metadata:
@@ -480,7 +493,7 @@ def createMetadata(request, datafile):
         cont = commands.getoutput("curl -u " + request.session.get('username') + ":" + request.session.get('password') + " -k -s " + filename[1:])
     with open(request.session.get('username') + "/data.txt", "w") as datafile:
         datafile.write(cont)
-    with open(request.session.get('username') + "/" + datafile.name, "r") as tfile:
+    with open(datafile.name, "r") as tfile:
         for line in tfile:
             if "!Sample_geo_accession" in line:
                 line = line.split('\t')
@@ -578,62 +591,69 @@ def make_data_files(gi, files, username, password, control, test, history_id, fi
             samples_b = []
             linenr = 0
             if control != "[]" or test != "[]":
-                with open(username + "/input_" + filename, "w") as ndfile:
-                    for line in tfile:
-                        if linenr == 0:
-                            samples_a.append(0)
-                            if "!" not in line:
-                                noheader = True
-                        if not noheader:
-                            if "!Sample_geo_accession" in line:
-                                line = line.split('\t')
-                                for x in range(0, len(line)):
-                                    if line[x].replace('\n', '') in control:
-                                        samples_a.append(x)
-                                    if line[x].replace('\n', '') in test:
-                                        samples_b.append(x)
-                            else:
-                                if "!series_matrix_table_begin" in line:
-                                    matrix = True
-                                    samples_a.append(0)
-                                if matrix:
-                                    line = line.split('\t')
-                                    for p in (p for p,x in enumerate(line) if p in samples_a):
-                                        if "!series_matrix_table_begin" not in line[p] and "!series_matrix_table_end" not in line[p]:
-                                            ndfile.write(line[p].replace('\"', '').replace('\n', '') + '\t')
-                                    for pb in (pb for pb,x in enumerate(line) if pb in samples_b):
-                                        if "!series_matrix_table_begin" not in line[pb] and "!series_matrix_table_end" not in line[pb]:
-                                            ndfile.write(line[pb].replace('\"', '').replace('\n', '') + '\t')
-                                    ndfile.write('\n')
-                                else:
-                                    line.strip()
-                        else:
-                            line = line.split('\t')
+                with open(username + "/input_A_" + filename, "w") as ndfilea:
+                    with open(username + "/input_B_" + filename, "w") as ndfileb:
+                        for line in tfile:
                             if linenr == 0:
+                                samples_a.append(0)
+                                samples_b.append(0)
+                                if "!" not in line:
+                                    noheader = True
+                            if not noheader:
+                                if "!Sample_geo_accession" in line:
+                                    line = line.split('\t')
+                                    for x in range(0, len(line)):
+                                        if line[x].replace('\n', '') in control:
+                                            samples_a.append(x)
+                                        if line[x].replace('\n', '') in test:
+                                            samples_b.append(x)
+                                else:
+                                    if "!series_matrix_table_begin" in line:
+                                        matrix = True
+                                        samples_a.append(0)
+                                    if matrix:
+                                        line = line.split('\t')
+                                        for p in (p for p,x in enumerate(line) if p in samples_a):
+                                            if "!series_matrix_table_begin" not in line[p] and "!series_matrix_table_end" not in line[p]:
+                                                ndfilea.write(line[p].replace('\"', '').replace('\n', '') + '\t')
+                                        for pb in (pb for pb,x in enumerate(line) if pb in samples_b):
+                                            if "!series_matrix_table_begin" not in line[pb] and "!series_matrix_table_end" not in line[pb]:
+                                                ndfilea.write(line[pb].replace('\"', '').replace('\n', '') + '\t')
+                                        ndfilea.write('\n')
+                                    else:
+                                        line.strip()
+                            else:
+                                line = line.split('\t')
+                                if linenr == 0:
+                                    column = 0
+                                    control = control.split(',')
+                                    test = test.split(',')
+                                    for l in line:
+                                        for c in control:
+                                            if str(c.replace('[', '').replace(']', '').replace('"', '')) == l.replace('\n', ''):
+                                                samples_a.append(column)
+                                        for t in test:
+                                            if str(t.replace('[', '').replace(']', '').replace('"', '')) == l.replace('\n', ''):
+                                                samples_b.append(column)
+                                        column += 1
                                 column = 0
-                                control = control.split(',')
-                                test = test.split(',')
                                 for l in line:
-                                    for c in control:
-                                        if str(c.replace('[', '').replace(']', ''). replace('"', '')) == l:
-                                            samples_a.append(column)
-                                    for t in test:
-                                        if str(t.replace('[', '').replace(']', ''). replace('"', '')) == l:
-                                            samples_b.append(column)
+                                    if column in samples_a:
+                                        ndfilea.write(line[column].replace('\"', '').replace('\n', '') + '\t')
+                                    if column in samples_b:
+                                        ndfileb.write(line[column].replace('\"', '').replace('\n', '') + '\t')
                                     column += 1
-                            column = 0
-                            for l in line:
-                                if column in samples_a:
-                                    ndfile.write(line[column].replace('\"', '').replace('\n', '') + '\t')
-                                if column in samples_b:
-                                    ndfile.write(line[column].replace('\"', '').replace('\n', '') + '\t')
-                                column += 1
-                            ndfile.write('\n')
-                        linenr += 1
-                if len(samples_a) > 1 or len(samples_b) > 1:
-                    gi.tools.upload_file(ndfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
-                ndfile.close()
-                commands.getoutput("rm " + ndfile.name)
+                                ndfilea.write('\n')
+                                ndfileb.write('\n')
+                            linenr += 1
+                if len(samples_a) > 1:
+                    gi.tools.upload_file(ndfilea.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file, label='control')
+                if len(samples_b) > 1:
+                    gi.tools.upload_file(ndfileb.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file, label='test')
+                ndfilea.close()
+                ndfileb.close()
+                commands.getoutput("rm " + ndfilea.name)
+                commands.getoutput("rm " + ndfileb.name)
             else:
                 gi.tools.upload_file(dfile.name, history_id, file_type=filetype, dbkey=dbkey, prefix=file)
         dfile.close()
@@ -663,16 +683,16 @@ def make_meta_files(gi, mfiles, username, password, control, test, history_id):
                     with open(username + "/input_classmeta.txt", "w") as nmeta:
                         for l in metadatafile:
                             columns = l.split('\t')
-                            if len(columns) >= 2:
+                            if len(columns) > 0:
                                 if linenr > 0:
-                                    if len(columns) >= 2:
+                                    if len(columns) > 0:
                                         for c in control:
-                                            if str(c.replace('[', '').replace(']', '').replace('"', '')) == columns[0]:
+                                            if str(c.replace('[', '').replace(']', '').replace('"', '')) == columns[0].replace('[', '').replace(']', '').replace('"', '').replace('\n', ''):
                                                 l = l.replace('\n', '').replace('\r', '')
                                                 nmeta.write(l + "\tA")
                                                 nmeta.write("\n")
                                         for t in test:
-                                            if str(t.replace('[', '').replace(']', '').replace('"', '')) == columns[0]:
+                                            if str(t.replace('[', '').replace(']', '').replace('"', '')) == columns[0].replace('[', '').replace(']', '').replace('"', '').replace('\n', ''):
                                                 l = l.replace('\n', '').replace('\r', '')
                                                 nmeta.write(l + "\tB")
                                                 nmeta.write("\n")
@@ -701,6 +721,8 @@ def upload(request):
     workflowid = request.POST.get('workflowid')
     pid = request.POST.get('data_id')
     onlydata = request.POST.get('onlydata')
+    makecol = request.POST.get('col')
+    data_ids = []
     control = request.POST.get('samples')
     test = request.POST.get('samplesb')
     new_hist = request.POST.get('historyname')
@@ -737,12 +759,15 @@ def upload(request):
             jsonwf = gi.workflows.export_workflow_json(workflowid)
             for i in range(len(jsonwf["steps"])):
                 if jsonwf["steps"][str(i)]["name"] == "Input dataset":
-                    label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
+                    label = jsonwf["steps"][str(i)]["label"]
                     mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
             for k, v in mydict.items():
                 datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'),
                                                                  request.session.get('server'))[0][in_count]}
+                data_ids.append(get_input_data(request.session.get('api'), request.session.get('server'))[0][in_count])
                 in_count += 1
+            if makecol == "true":
+                gi.histories.create_dataset_collection(history_id, make_collection(data_ids))
             gi.workflows.invoke_workflow(workflowid, datamap, history_id=history_id)
             gi.workflows.export_workflow_to_local_path(workflowid, request.session.get('username'), True)
             datafiles = get_output(request.session.get('api'), request.session.get('server'))
@@ -758,10 +783,29 @@ def upload(request):
             return render_to_response('results.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid,
                                                                'server': request.session.get('server')})
         else:
+            if makecol == "true":
+                history_data = gi.histories.show_history(history_id, contents=True)
+                for c in range(0, len(history_data)):
+                    data_ids.append(history_data[c]['id'])
+                gi.histories.create_dataset_collection(history_id, make_collection(data_ids))
             ug_store_results(
                 request.session.get('api'), request.session.get('server'), workflowid, request.session.get('username'), 
                 request.session.get('password'), request.session.get('storage'), groups, investigations, date)
             return HttpResponseRedirect("/")
+
+
+"""
+Make a collection based on the uploaded data files.
+"""
+def make_collection(data_ids):
+    idlist = []
+    count = 0
+    for c in range(0, len(data_ids)):
+        data_id = data_ids[c]
+        idlist.append({'src': "hda", 'id': data_id, 'name': str(count)})
+        count += 1
+    collection = {'collection_type': 'list', 'element_identifiers': idlist, 'name': 'collection'}
+    return collection
 
 
 """
@@ -776,18 +820,21 @@ def store_results(column, datafiles, server, username, password, storage, groups
             outputfile.write(cont)
         new_name = sha1sum(username + "/" + old_name) + "_" + old_name
         os.rename(username + "/" + old_name, username + "/" + new_name)
+        """
+        tar archiving the output.
+        """
         for i in investigations:
             for g in groups:
                 commands.getoutput(
                     "curl -s -k -u " + username + ":" + password + " -X MKCOL " +
-                    storage + "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid))
+                    storage + "/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid))
                 commands.getoutput(
                     "curl -s -k -u " + username + ":" + password + " -T " + '\'' + username + "/" + new_name + '\'' + " " + storage +
-                    "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
+                    "/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name)
                 commands.getoutput(
                     "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                     username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
-                    username.replace('@', '') + "#pid> \"" + storage + "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') +
+                    username.replace('@', '') + "#pid> \"" + storage + "/" + i.replace('"', '') + "/" + g.replace('"', '') +
                     "/results_" + str(resultid) + "/" + new_name + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                 commands.getoutput(
                     "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
@@ -822,7 +869,7 @@ def ga_store_results(username, password, workflowid, storage, resultid, groups, 
             for i in investigations:
                 for g in groups:
                     commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + username + "/" + new_name + " " +
-                                       storage + "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" +
+                                       storage + "/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" +
                                        str(resultid) + "/" + new_name)
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
@@ -849,18 +896,19 @@ def ug_store_results(api, server, workflowid, username, password, storage, group
             inputfile.write(cont)
         new_name = sha1sum(username + "/" + old_name) + "_" + old_name
         os.rename(username + "/" + old_name, username + "/" + new_name)
+        time.sleep(5)
         for i in investigations:
             for g in groups:
-                commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/MYFAIR/" +
+                commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/" +
                                    i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid))
                 commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + username + "/" + new_name + " " + storage +
-                                   "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) +
-                                   "/" + new_name)
+                                   "/" + i.replace('"', '') + "/" + g.replace('"', '') + "/results_" + str(resultid) +
+                                   "/" + new_name + " ")
                 commands.getoutput(
                     "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                     username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
-                    username.replace('@', '') + "#pid> \"" + storage + "/MYFAIR/" + i.replace('"', '') + "/" + g.replace('"', '') +
-                    "/results_" + str(resultid) + "/" + new_name + "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
+                    username.replace('@', '') + "#pid> \"" + storage + "/" + i.replace('"', '') + "/" + g.replace('"', '') +
+                    "/results_" + str(resultid) + "/" + new_name + " \" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                 commands.getoutput(
                     "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                     username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
@@ -908,21 +956,21 @@ This is based on the search results in myFAIR.
 """
 @csrf_exempt
 def show_results(request):
-    if request.session.get('username') is not None:
-        username = request.session.get('username')
-        password = request.session.get('password')
-        storage = request.session.get('storage')
-        groups = []
-        results = []
-        inputs = []
-        out = []
-        result = ""
-        workflow = []
-        wf = False
-        if request.method == 'POST':
-            request.session['stored_results'] = request.POST
-            return render_to_response('results.html', context={'outputs': out})
-        else:
+    username = request.session.get('username')
+    password = request.session.get('password')
+    storage = request.session.get('storage')
+    groups = []
+    results = []
+    inputs = []
+    out = []
+    result = ""
+    workflow = []
+    wf = False
+    if request.method == 'POST':
+        request.session['stored_results'] = request.POST
+        return render_to_response('results.html', context={'outputs': out})
+    else:
+        if username is not None:
             old_post = request.session.get('stored_results')
             investigations = old_post['investigations']
             group = old_post['group']
@@ -939,31 +987,31 @@ def show_results(request):
                     if investigation != "-":
                         oc_folders = commands.getoutput(
                             "curl -s -X PROPFIND -u " + username + ":" + password +
-                            " '" + storage + '/MYFAIR/' + investigation + '/' + group +
+                            " '" + storage + '/' + investigation + '/' + group +
                             "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
                     else:
                         oc_folders = commands.getoutput(
                             "curl -s -X PROPFIND -u " + username + ":" + password +
-                            " '" + storage + '/MYFAIR/' + group + "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+                            " '" + storage + '/' + group + "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
                     oc_folders = filter(None, oc_folders)
                     for folder in oc_folders:
                         if "results_" in folder:
                             if investigation != "-":
                                 result = commands.getoutput(
                                     "curl -s -X PROPFIND -u " + username + ":" + password +
-                                    " '" + storage + '/MYFAIR/' + investigation + '/' + group + '/' + 'results_' + results[0] +
+                                    " '" + storage + '/' + investigation + '/' + group + '/' + 'results_' + results[0] +
                                     "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
                             else:
                                 result = commands.getoutput(
                                     "curl -s -X PROPFIND -u " + username + ":" + password +
-                                    " '" + storage + '/MYFAIR/' + group + '/' + 'results_' + results[0] +
+                                    " '" + storage + '/' + group + '/' + 'results_' + results[0] +
                                     "' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
             for r in result:
                 if ".ga" in r:
                     wf = True
                     nres = r.split('/')
                     cont = commands.getoutput(
-                        "curl -s -k -u " + username + ":" + password + " " + storage + "/MYFAIR/" + nres[len(nres)-4] + "/" +
+                        "curl -s -k -u " + username + ":" + password + " " + storage + "/" + nres[len(nres)-4] + "/" +
                         nres[len(nres)-3] + "/" + nres[len(nres)-2] + "/" + nres[len(nres)-1])
                     with open(username + "/" + nres[len(nres)-1], "w") as ga:
                         ga.write(cont)
@@ -992,16 +1040,17 @@ def show_results(request):
                 inputs = filter(None, inputs)
             return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow,
                             'storage': storage, 'resultid': resid, 'workflowid': wid})
-    else:
-        HttpResponseRedirect('/')
+        else:
+            return HttpResponseRedirect('/')
 
 
 """
 Remove session to log out.
 """
 def logout(request):
-    commands.getoutput("rm -r " + request.session.get('username'))
-    request.session.flush()
+    if request.session.get('username') is not None:
+        commands.getoutput("rm -r " + request.session.get('username'))
+        request.session.flush()
     return HttpResponseRedirect("/")
 
 
@@ -1023,6 +1072,7 @@ def get_output(api, server):
         state = hist['state_ids']
         dump = json.dumps(state)
         status = json.loads(dump)
+        # Stop process after workflow is done
         while status['running'] or status['queued'] or status['new'] or status['upload']:
             time.sleep(20)
             hist = gi.histories.show_history(historyid)
@@ -1111,15 +1161,15 @@ def store_history(request):
                 os.rename(username + "/" + old_name, username + "/" + new_name)
                 count += 1
                 for g in groups.split(','):
-                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/MYFAIR/" +
+                    commands.getoutput("curl -s -k -u " + username + ":" + password + " -X MKCOL " + storage + "/" +
                                        investigation + "/" + g.replace('"', '') + "/results_" + str(resultid))
                     commands.getoutput("curl -s -k -u " + username + ":" + password + " -T " + '\'' + username + "/" + new_name + '\'' +
-                                       " " + storage + "/MYFAIR/" + investigation + "/" + g.replace('"', '') + "/results_" +
+                                       " " + storage + "/" + investigation + "/" + g.replace('"', '') + "/results_" +
                                        str(resultid) + "/" + new_name)
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
                         username.replace('@', '') + "> { <http://127.0.0.1:3030/" + str(resultid) + "> <http://127.0.0.1:3030/ds/data?graph=" +
-                        username.replace('@', '') + "#pid> \"" + storage + "/MYFAIR/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +
+                        username.replace('@', '') + "#pid> \"" + storage + "/" + g.replace('"', '') + "/results_" + str(resultid) + "/" + new_name +
                         "\" } }' -H 'Accept: text/plain,*/*;q=0.9'")
                     commands.getoutput(
                         "curl http://127.0.0.1:3030/ds/update -X POST --data 'update=INSERT DATA { GRAPH <http://127.0.0.1:3030/ds/data/" +
@@ -1183,7 +1233,7 @@ def rerun_analysis(request):
         filename = u.replace("[", "").replace("]", "").replace(" ", "").replace('"', '')
         cont = commands.getoutput(
             "curl -s -u " + request.session.get('username') + ":" + request.session.get('password') + " " +
-            request.session.get('storage') + "/MYFAIR/" + filename)
+            request.session.get('storage') + "/" + filename)
         file = filename.split('/')
         with open(request.session.get('username') + "/" + file[len(file)-1], "w") as infile:
             infile.write(cont)
@@ -1191,16 +1241,16 @@ def rerun_analysis(request):
         commands.getoutput("rm " + infile.name)
     oc_folders = commands.getoutput(
         "curl -s -X PROPFIND -u " + request.session.get('username') + ":" + request.session.get('password') + " '" + request.session.get('storage') +
-        "/MYFAIR/" + resultid +"' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
+        "/" + resultid +"' | grep -oPm250 '(?<=<d:href>)[^<]+'").split("\n")
     for f in oc_folders:
         if ".ga" in f:
             if "/owncloud/" in request.session.get('storage'):
-                ga = f.replace('/owncloud/remote.php/webdav/MYFAIR/', '')
+                ga = f.replace('/owncloud/remote.php/webdav/', '')
             else:
-                ga = f.replace('/remote.php/webdav/MYFAIR/', '')
+                ga = f.replace('/remote.php/webdav/', '')
             gacont = commands.getoutput(
                 "curl -s -u " + request.session.get('username') + ":" + request.session.get('password') + " " +
-                request.session.get('storage') + "/MYFAIR/" + ga)
+                request.session.get('storage') + "/" + ga)
             ga = ga.split('/')
             with open(request.session.get('username') + "/" + ga[len(ga)-1], "w") as gafile:
                 gafile.write(gacont)
@@ -1228,7 +1278,6 @@ def rerun_analysis(request):
     return HttpResponseRedirect("/")
 
 
-
 """
 Find ontology iri based on tagged data when indexing.
 """
@@ -1249,12 +1298,13 @@ def onto(disgenet, edam):
         "curl -s 'http://www.ebi.ac.uk/ols/api/search?q=" + edam + "&ontology=edam' 'Accept: application/json'")
     try:
         jdisease = json.loads(disid)
+        umllist = []
         umls = jdisease['results']['bindings'][0]['disease']['value']
-    except IndexError:
+    except (IndexError, ValueError):
         umls = "No disgenet record"
     try:
         jedam = json.loads(edam_id)
         eid = jedam['response']['docs'][0]['iri']
-    except IndexError:
+    except (IndexError, ValueError):
         eid = "No EDAM record"
     return umls, eid

@@ -5,76 +5,150 @@
  */
 @media(min-width:768px) {
     body {
-        padding-top: 40px; /* Required padding for .navbar-fixed-top. Change if height of navigation changes. */
         font-size: 9pt;
+        height: auto;
     }
+}
+input[type="checkbox"]:checked + label::after {
+   content: '';
+   position: absolute;
+   width: 1.9ex;
+   height: 1ex;
+   background: rgba(0, 0, 0, 0);
+   top: 0.7ex;
+   left: 0.5ex;
+   border: 2px solid #21317F;
+   border-top: none;
+   border-right: none;
+   -webkit-transform: rotate(-45deg);
+   -moz-transform: rotate(-45deg);
+   -o-transform: rotate(-45deg);
+   -ms-transform: rotate(-45deg);
+   transform: rotate(-45deg);
+}
+input[type="checkbox"] {
+   line-height: 2.1ex;
+}
+input[type="checkbox"],
+input[type="radio"] {
+    position: absolute;
+    left: -999em;
+}
+input[type="checkbox"] + label {
+    color: #21317F;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+input[type="checkbox"] + label::before {
+   content: "";
+   display: inline-block;
+   vertical-align: -25%;
+   height: 2.75ex;
+   width: 2.75ex;
+   background-color: #e7f3ff;
+   color: #21317F;
+   border: 1px solid #21317F;
+   margin-right: 0.5em;
+}
+.navbar-header {
+    position:fixed;
+    top: 0;
+    margin:auto;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    background-color: #e7f3ff;
+    width: 100%;
+    height: auto;
+    border-top: 3px solid #21317F;
+    border-bottom: 1px solid #21317F;
+}
+.menu-text {
+    text-align: center;
+    font-size: 10pt;
+    font-weight: bold;
+    padding: 10px;
+    height: 100%;
+}
+#menu {
+    float: left;
+    text-align: center;
+    margin: 5px;
+    margin-bottom: 0;
+}
+#menubar {
+    width: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 10px;
+    height: 100%;
+}
+#menubar li {
+    height: 100%;
+    display: inline-block;
+}
+#menu a:hover {
+    font-weight: bold;
+    color: #21317F;
+    text-decoration: none;
+}
+#menu a {
+    color: #337ab7;
+}
+.info {
+    margin-bottom: 10px;
+}
+body select {
+    height: 30px;
+    background-color: #fff;
+    border: 3px solid #e7f3ff;
+    color: #21317F;
 }
 .table {
     width: 100%;
     table-layout: auto;
-    font-size: 9pt;
+    font-size: 8pt;
     box-sizing: none;
 }
-.table a{
+.table a {
     cursor: pointer;
 }
-.table td{
+.table td {
     white-space: normal;
     word-wrap: break-word;
 }
 #table-login th {
     padding: 15px 32px;
-    background-color: #86CEF4;
+    background-color: #e7f3ff;
     border: none;
 }
-#login-button {
-    box-shadow: 0 2px 6px 0 rgba(0,0,0,0.24), 0 4px 8px 0 rgba(0,0,0,0.19);
-    background-color: #fff;
-    color: #000;
-    border: 1px solid #f2f2f2;
-    padding: 5px 15px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 9pt;
-    cursor: pointer;
+#tbl-files {
+    border: 3px solid #e7f3ff;
 }
-#login-button:hover {
-    background-color: #d9edf7;
-    color: #000;
+#tbl-files tr:nth-child(odd) {
+    background-color: #fafafa;
 }
-#login-button:active {
-  background-color: #86CEF4;
-  box-shadow: 0 0px 0px rgba(0,0,0,0.0), 0 0px 0px 0 rgba(0,0,0,0.0);
-  outline: none;
+#tbl-files th {
+    padding: 10px;
+    background-color: #e7f3ff;
 }
-option {
-    height:18px;
-    text-indent:20px;
-    font-size: 100%;
+#tbl-files td {
+    padding: 5px;
 }
-
-.btn-option {
-  color: #000000;
-  background-color: #d9edf7;
-  border-color: #21317F;
-  font-size: 10pt;
-  cursor: pointer;
-}
-.btn-process{
-  color: #000000;
-  background-color: #d9edf7;
-  border-color: #21317F;
-  font-size: 10pt;
+.btn-process {
+  color: #fff;
+  border-color: #e7f3ff;
+  background-color: #21317F;
 }
 .btn-process:hover,
 .btn-process:focus,
 .btn-process:active,
 .btn-process.active,
 .open .dropdown-toggle.btn-process {
-  color: #000000;
-  background-color: #86CEF4;
+  color: #333;
   border-color: #21317F;
+  background-color: #e7f3ff;
 }
 .btn-process:active,
 .btn-process.active,
@@ -96,12 +170,9 @@ fieldset[disabled] .btn-process:active,
 .btn-process.disabled.active,
 .btn-process[disabled].active,
 fieldset[disabled] .btn-process.active {
-  background-color: #86CEF4;
-  border-color: #d9edf7;
-}
-.btn-process .badge {
-  color: #86CEF4;
-  background-color: #000000;
+    color: #333;
+    border-color: #21317F;
+    background-color: #e7f3ff;
 }
 #select, #show_results {
     width: 100%;
@@ -112,34 +183,75 @@ fieldset[disabled] .btn-process.active {
     font-size: 10pt;
     min-width: 10%;
     max-width: 50%;
-    background-color: #d9edf7;
-}
-.select-workflow optgroup {
-    font-size: 10pt;
 }
 .select-folder {
     font-size: 10pt;
     min-width: 25%;
     max-width: 100%;
-    background-color: #ffffff;
-}
-.select-folder optgroup {
-    font-size: 10pt;
 }
 .select-option {
     font-size: 10pt;
     min-width: 10%;
     max-width: 25%;
-    background-color: #d9edf7;
+
 }.select-folder optgroup {
     font-size: 10pt;
 }
+/*
+Dropdown menu custom arrows
+Start
+*/
+body select {
+    border: 1px solid #e7f3ff;
+    color: #21317F !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 20px;
+    background-image: url('../img/dropdown.png');
+    background-position: calc(100% - 5px) calc(50%);
+    background-size: 10px;
+    background-repeat: no-repeat;
+}
+body select:hover {
+    border: 1px solid #21317F;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+}
+body select:focus {
+    color: #21317F;
+    color: transparent;
+    text-shadow: 0 0 0 #21317F;
+}
+/*
+Dropdown menu custom arrows
+End
+*/
+#login input[type=text],
+#login input[type=password],
+#login select {
+    margin: 10px;
+}
+input[type=text], input[type=password] {
+    width: 99%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    margin: 3px;
+}
+input[type=text]:focus,
+input[type=password]:focus,
+textarea:focus {
+    border: 1px solid #21317F;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+}
 #index_buttons {
-    box-shadow: 0 2px 6px 0 rgba(0,0,0,0.24), 0 4px 8px 0 rgba(0,0,0,0.19);
+    height: 30px;
     background-color: #fff;
-    color: #000;
-    border: 1px solid #f2f2f2;
-    padding: 5px 15px;
+    color: #333;
+    border: 1px solid #e7f3ff;
+    padding: 2px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -147,26 +259,56 @@ fieldset[disabled] .btn-process.active {
     cursor: pointer;
 }
 #index_buttons:hover {
-    background-color: #d9edf7;
-    color: #000;
+    border: 1px solid #21317F;
+    outline: 0;
+    -webkit-box-shadow: inset 0 2px 2px rgba(0,0,0,.075),0 0 12px rgba(102,175,233,.6);
+    box-shadow: inset 0 2px 2px rgba(0,0,0,.075),0 0 12px rgba(102,175,233,.6);
 }
 #index_buttons:active {
-  background-color: #d9edf7;
-  box-shadow: 0 0px 0px rgba(0,0,0,0.0), 0 0px 0px 0 rgba(0,0,0,0.0);
+  background-color: #fff;
+  border: 1px solid #e7f3ff;
+  color: #333;
   outline: none;
 }
 #login {
-    float: left;
-    background-color: #d9edf7;
-    margin-left: 20px;
-    padding: 10px;
+    width: 30%;
+    top: 0%;
+    margin: 0 auto;
+    position: relative;
+    float: none;
+    background-color: #fff;
+    padding: 50px;
     font-size: 9pt;
+    text-align: center;
 }
 #login table {
+    margin: 0 auto;
     color: #21317F;
 }
 #login th{
     padding-right: 3em;
+}
+#modify {
+    width: 40%;
+    top: 8%;
+    margin: 0 auto;
+    position: relative;
+    background-color: #fff;
+    color: #333;
+    float: none;
+    padding: 10px;
+    text-align: center;
+}
+#modify table {
+    text-align: left;
+    color: #21317F;
+    width: 100%;
+}
+#modify th {
+    padding-right: 3em;
+}
+#modify td {
+    width: 100%;
 }
 #help {
     float: left;
@@ -180,7 +322,30 @@ fieldset[disabled] .btn-process.active {
     color: #21317F;
     font-size: 100%;
 }
-
+#results {
+    float: left;
+    width: 100%;
+    margin-top: 20px;
+}
+#errorPanel {
+    float: left;
+    width: 98%;
+    margin-top: 20px;
+}
+input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+#searchDataList {
+    display: none;
+}
+#results_table {
+    margin: 0;
+    min-width: 50%;
+    max-width: 100%;
+}
+#search-panel {
+    margin-top: 25px;
+}
 /*
 Sticky footer styles
 */
@@ -189,7 +354,6 @@ Sticky footer styles
         height: 100%;
         /* The html and body elements cannot have any padding or margin. */
       }
-
       /* Wrapper for page content to push down footer */
       #wrap {
           min-height: 100%;
@@ -198,38 +362,29 @@ Sticky footer styles
           /* Negative indent footer by it's height */
           margin: 0 auto -60px;
       }
-
       /* Set the fixed height of the footer here */
       #push,
       #footer {
-          clear: both;
-          height: 50px;
+            clear: both;
+            padding: 0;
+            vertical-align: middle;
+            line-height: normal;
+            margin: 0;
+            position: fixed;
+            bottom: 0px;
+            width: 100%;
       }
       #footer {
-          background-color: #d9edf7;
+          background-color: #e7f3ff;
+          border-top: 1px solid #21317F;
+          color: #337ab7;
       }
-
       /* Lastly, apply responsive CSS fixes as necessary */
       @media (max-width: 767px) {
-          #footer {
-              margin-left: -20px;
-              margin-right: -20px;
-              padding-left: 20px;
-              padding-right: 20px;
+        #footer {
+            margin-left: -20px;
+            margin-right: -20px;
+            padding-left: 20px;
+            padding-right: 20px;
         }
-      }
-
-
-      /* Custom page CSS
-      -------------------------------------------------- */
-      /* Not required for template or sticky footer method. */
-
-      #wrap > .container {
-        padding-top: 60px;
-      }
-      .container .credit {
-        margin: 20px 0;
-      }
-      code {
-        font-size: 80%;
       }

@@ -10,7 +10,7 @@
 
 For this testcase we are using variant selection by GEMINI analysis using genome in the bottle data. Specifically, we will be using Ashkenazim Father-Mother-Son trio data from the Personal Genome Project. You can download the down sampled version of the dataset created by the GEMINI team from a GIAB trio dataset.
 The vcf file can be found [here](https://bioinf-galaxian.erasmusmc.nl/galaxy/library/list#folders/F8ae2ca084c0c0c70/datasets/e4e82f84348cba8c) and the ped file can be found [here](https://bioinf-galaxian.erasmusmc.nl/galaxy/library/list#folders/F8ae2ca084c0c0c70/datasets/5e4dbb32432c1676).
-For the GEO data matrix option there is no workflow available. You can follow the steps to filter the data matrix and metadata based on selected samples and send them to Galaxy. You can find these steps under the "Using GEO files" header.
+For the GEO data matrix option there is a workflow available that is using DEseq2. You can follow the steps to filter the data matrix and metadata based on selected samples and send them to Galaxy. You can find these steps under the "Using GEO files" header.
 
 # <a name="dependencies"></a>Dependencies
 * Python 2.7.12
@@ -35,7 +35,7 @@ To install myFAIR on your existing Virtual Machine follow these steps:
 5. To run the Apache Fuseki Server open the terminal and type:  **fuseki location/fuseki start**
 7. Create a new dataset in Fuseki called "ds".
 8. Start the Galaxy server by opening the terminal and type: **galaxy location/run.sh**
-9. Download the Gemini workflow by importing a workflow using this url: https://bioinf-galaxian.erasmusmc.nl/galaxy/u/rick/w/training-gemini-vcfanalysis-11112016/json.
+9. Download the Gemini workflow by importing a workflow using this url: https://usegalaxy.org/u/rickjansen/w/training-gemini-vcfanalysis-11112016.
 10. Test if 127.0.0.1:8080(or other chosen port) shows the myFAIR login page and that 127.0.0.1:8000(or other chosen port) shows the Galaxy page. To test fuseki go to 127.0.0.1:3030 and see if there is a green circle next to "Server status".
 11. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
 
@@ -60,7 +60,7 @@ In order to run the myFAIR analysis you need to follow these steps:
 
 1. Follow the Installation Instructions.
 2. Open or download a browser (Firefox or Chrome recommended).
-3. Go to the local Galaxy page: 127.0.0.1:8000 (if other port is selected please make sure the url is correct)
+3. Go to the usegalaxy page: https://usegalaxy.org/
 4. Login to your account or create a new account by clicking "User" and then clicking "Register".
 5. Get the API Key from your account. If you do not have an API Key visible for you, create one.
 6. Visit the B2DROP or page and create a folder where you can put your datafiles. You can also use the bioinf-galaxian Owncloud if you have an account.
@@ -72,11 +72,12 @@ In order to run the myFAIR analysis you need to follow these steps:
 7. Visit the myFAIR analysis page on 127.0.0.1:8080 (if selected other port please make sure the url is correct)
 8. Login using your Galaxy API Key and your B2DROP or bioinf-galaxian credentials.
 9. Upload files to the Fuseki server:
-    * Click on the "Upload Files" link.
+    * Click on the "Index you data" link.
     * Select the investigation folder and click "See studies".
     * Select the study folder where your datafiles are located and click "See files".
     * You will now see the two files you added to this folder in step 6.
     * Choose which file is your datafile (vcf file) and which file is your metadata (ped file).
+    * Tag the data with a disease and with a type of operation. If the tagged disease is found in DisGeNET a link will be stored in the triple store, if the type of operation is found in EDAM a link to the EDAM page will be stored.
     * Click "Store Triples" to start the creation of new triples and store them in the Fuseki server.
     * If you are using the GEO data matrix, please choose the "datafile" option for all data matrix files you want to upload. If you do not have a metadata file, click "Store Triples". If you already have a metadata file please select "metadata" for that file and then click "Store Triples".
     * You will be send back to the homepage.
@@ -84,19 +85,16 @@ In order to run the myFAIR analysis you need to follow these steps:
 10. Find your files or samples:
 
     a. Find your files using a sample name:
-    *   Select the option "Search for sample".
-    *   Enter a sample name.
-    *   Click on the "Process >>" button to start searching for your files.
+    *   Enter a sample name in the Find Data textbox.
+    *   Click on the "Search >>" button to start searching for your files.
     
     b. Find your files using a study name:
-    *   Select the option "Search for study".
-    *   Enter the name of a group.
-    *   Click on the "Process >>" button to start searching for your files.
+    *   Enter the name of the study in the Find data textbox.
+    *   Click on the "Search >>" button to start searching for your files.
 
     c. Find samples with a specific disease:
-    *   Select the option "Search for disease".
-    *   Enter the name of the disease.
-    *   Click on the "Process >>" button to start searching for your files.
+    *   Enter the name of the disease in the Find data textbox.
+    *   Click on the "Search >>" button to start searching for your files.
 
 11. Send the files to Galaxy and run a workflow:
     *   After finding your files, select the "Training_gemini_vcfanalysis_11112016" workflow by clicking on the dropdown menu.
@@ -107,33 +105,36 @@ In order to run the myFAIR analysis you need to follow these steps:
 A checkmark will appear when the files are send to galaxy and the workflow is finished (if you selected a workflow).
 If something went wrong (workflow failed, not selected a file or you get timed-out) an error message will appear.
 13. If you do not want to use a workflow you can choose "Use Galaxy" to only send the datafiles to Galaxy and work with the files directly in Galaxy.
-14. You can visit the Galaxy page to see if the workflow is running by going to http://127.0.0.1:8000 (if selected other port please make sure the url is correct) or go to the next step.
+14. You can visit the Galaxy page to see if the workflow is running by going to https://usegalaxy.org/ or go to the next step.
 
 # <a name="using-geo"></a> Using GEO files
 To split GEO files and send only specific samples to a new Galaxy history follow these steps:
 
-1. Download the GSE7621_series_matrix.txt files from ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE7nnn/GSE7621/matrix/
-2. Place the data matrix in a study folder in B2DROP or bioinf-galaxian Owncloud (make sure that the study folder is in an investigation folder).
-3. Index the data matrix by clicking on the Upload Files link. Then selecting the investigation folder where the study is located and click the "See studies" button. Select the study with the data matrix, then select the matrix file as a datafile and click on the "Store Triples" button. (If you already have a metadata file based on the data matrix please select this file to be metadata. Step 4 will be skipped if you have selected this option.)
-4. The metadata will be created automatically and uploaded to the same folder as the data matrix. After this is done you will be redirected to the homepage.
-5. Select the "Get samples from study" option.
-6. Enter the name of the study folder where the data matrix is located.
-7. Click on the "Process >>" button to start searching for all available samples in the data matrix.
+1. Download the GSE51403_expression_matrix_full.txt and  GSE51403_design_matrix_full_depth.txt file from https://bioinf-galaxian.erasmusmc.nl/galaxy/library/list#folders/F451c39ee14117b54
+2. Change the header called sample-name in sample_id.
+2. Place the data matrix and metadata in a study folder in B2DROP.
+3. Index the data matrix by clicking on the Index your data link. Then selecting the investigation folder where the study is located and click the "See studies" button. Select the study with the data matrix, then select the matrix file as the datafile and teh design file as the metadata file.
+4. Tag the data with the disease Unknown and the type of operation is RNA-seq read count analysis.
+5. click on the "Store Triples" button.
+6. On the homepage: enter the name of the study folder where the data matrix is located.
+7. Click on the "Search >>" button to start searching for all available samples in the data matrix.
 8. A list of samples will be shown in the results table. On the right side you will see a checkbox to select the file you want to use, on the left side are two checkboxes with the options A and B.
-9. Select a file you want to use (In this case all files should be the same).
-10. Select the samples you want to use in group A and group B by checking the checkboxes next to the sample name.
+9. Select a file you want to use.
+10. Select the samples you want to use in group A (control) and group B (test) by checking the checkboxes next to the sample name.
 11. Choose the file format tabular or auto.
 12. Enter a new history name or leave empty to automatically generate a new history name.
-13. Click the "send to galaxy" button.
-14. The new matrix and metadata based on the selected samples will be send to Galaxy and will also be uploaded to the B2DROP or bioinf-galaxian Owncloud.
-15. Visit the Galaxy page to view the uploaded and to start working with them.
+13. Select the "Send datafile only" option when using the "differential_gene_expression workflow".
+14. Click the "send to galaxy" button.
+15. The new data matrix and metadata (if no workflow is selected) based on the selected samples will be send to Galaxy and will also be uploaded to B2DROP. If the workflow is used a tabular output and pdf file will also be stored in B2DROP.
+16. Visit the Galaxy page to view the uploaded and to start working with them.
+
 
 # <a name="see-results"></a> See results
 The following steps can be used to view the results of your analysis.
 
-1. Click on the "Get results from study" option.
-2. Enter the study name that you want to get the results from.
-3. Select the results you want to view by checking the select file checkmark.
+1. Enter the study name that you want to get the results from.
+2. Click on the "Search >>" button to start searching for all results based on that study.
+3. Select the results you want to view.
 4. Click on the "Show results" button.
 5. A new page will open with the input and output files  and the analysis details.
 6. Click on any of the "Download" buttons to download that file.

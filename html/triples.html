@@ -1,17 +1,26 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 {% block content %}
-<p style="margin-left: 20px;">
-    || <a href="/">Home</a>
-    || <a href="/delete">Delete from graph</a>
-    || <a href="/logout">Logout</a> ||
-    <br />
-</p>
-<div id="login">
+<div class="navbar-header">
+    <div class="container">
+        <div id="menu">
+            <ul id="menubar">
+                <li><a href="/" target="_self"><img src="{% static 'img/logo-erasmus.png' %}" alt="" class="img-thumbnail" width="81.5 height="31.8"></a></li>
+                <li><span class="menu-text" style="margin-left:10px"><a href="/triples">Index your data</a></span></li>
+                <li><span class="menu-text"><a href="/delete">Delete indexed data</a></span></li>
+                <li><span class="menu-text"><a href="/logout">Logout</a></span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="container" style="margin-top:100px"></div>
+<div id="modify">
+    <h3>Index your data</h3>
     <form action="/investigation/" method="post" name="investigation">
-        <b>
+        <p>
             Select an investigation by clicking on the dropdown menu.<br />
             Click the See Studies button to view all studies within that investigation.<br />
-        </b>
+        </p>
         <select id="folder" name="folder" class="select-folder">
             <optgroup label="available investigations:">
                 <option id="inv" disabled selected value="{{ inv }}">{{ inv }}</option>
@@ -27,10 +36,10 @@
     <form action="/triples/" method="post" name="triples">
         <input type="hidden" name="inv" id="inv" value="{{inv}}">
         <input type="hidden" name="sstudy" id="sstudy" value="{{sstudy}}">
-        <b>
+        <p>
             Select a study by clicking on the dropdown menu.<br />
             Click on the See Files button to view all files within that study. <br />
-        </b>
+        </p>
         <select id="study" name="study" class="select-folder">
             <optgroup label="available studies:">
                 {% if inv and not sstudy%}
@@ -55,7 +64,7 @@
         <input type="hidden" id="datalist" name="datalist" value="">
         <input type="hidden" id="metalist" name="metalist" value="">
         {% if files != "" and files is not None %}
-            <table>
+            <table id="tbl-files">
                 <thead>
                 <th>Files</th>
                 <th>Data File</th>
@@ -65,16 +74,24 @@
                     <tr>
                         <td>{{ file }}</td>
                         <td>
-                            <input type="checkbox" name="d" value="{{ file }}">
+                            <input type="checkbox" name="d" id="d{{file}}" value="{{ file }}">
+                            <label for="d{{file}}"></label>
                         </td>
                         <td>
-                            <input type="checkbox" name="m" value="{{ file }}">
+                            <input type="checkbox" name="m" id="m{{file}}" value="{{ file }}">
+                            <label for="m{{file}}"></label>
                         </td>
                     </tr>
                 {% endfor %}
                 <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
                     <td>Tag metadata:</td>
-                    <td><input type="text" id="disgenet-tag" name="disgenet-tag" placeholder="Disease"></td>
+                    <form action="/onto/"  method="post" name="searchonto">
+                    <td><input type="text" id="disgenet-tag" name="disgenet-tag" style="width:auto;" placeholder="Disease"></td>
                     <td>
                         <select id="edam-tag" name="edam-tag" class="select-folder">
                             <optgroup label="EDAM entries:">
@@ -82,6 +99,7 @@
                                 <option value="RNA-seq read count analysis">RNA-seq read count analysis</option>
                             </optgroup>
                         </select>
+                    </form>
                     </td>
                 </tr>
             </table>
@@ -102,9 +120,19 @@
                     formInfo.metalist.value = metalist
                 }
             </script>
+            <br />
             <button id="index_buttons" onclick="AddPostData()">Store Triples</button><br />
         {% endif %}
         <br />
     </form>
 </div>
+<!--<br />-->
+<!--<div id="footer">-->
+    <!--<div class="container">-->
+        <!--<br />-->
+        <!--Credits here-->
+        <!--<p class="muted credit">-->
+        <!--</p>-->
+    <!--</div>-->
+<!--</div>-->
 {% endblock %}

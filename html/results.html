@@ -4,42 +4,51 @@
 <link href="{% static 'css/output.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-<p style="margin-left: 20px;">
-    || <a href="/">&lt;&lt;back</a>
-    || <a href="/logout">Logout</a> ||
-</p>
-<hr>
+<div class="navbar-header">
+    <div class="container">
+        <div id="menu">
+            <ul id="menubar">
+                <li><a href="/" target="_self"><img src="{% static 'img/logo-erasmus.png' %}" alt="" class="img-thumbnail" width="81.5 height="31.8"></a></li>
+                <li><span class="menu-text" style="margin-left:10px"><a href="/triples">Index your data</a></span></li>
+                <li><span class="menu-text"><a href="/delete">Delete indexed data</a></span></li>
+                <li><span class="menu-text"><a href="/logout">Logout</a></span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="container" style="margin-top:100px"></div>
 <div id="title">
     <h2>{{resultid}}</h2>
 </div>
 <br />
 <div id="wrapper">
-    <div id="input" style="overflow-x:auto;">
+    <div class="resultDiv" id="input" style="overflow-x:auto;">
         <h3>Input Files</h3>
         <p>
-        <table id="input-files">
-            <span id="input-list" style="display: none">
-                {{inputs}}
-            </span>
-            <th>Input File</th>
-            <th></th>
-            {% for input in inputs %}
-                <tr>
-                    <td>{{input}}</td>
-                    <td>
-                        <a href="{{storage}}/MYFAIR/{{resultid}}/{{input}}">
-                            <button class="button">Download</button>
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+            <table class="tblresult" id="input-files">
+                <span id="input-list" style="display: none">
+                    {{inputs}}
+                </span>
+                <th>Input File</th>
+                <th></th>
+                {% for input in inputs %}
+                    <tr>
+                        <td>{{input}}</td>
+                        <td>
+                            <a href="{{storage}}/{{resultid}}/{{input}}">
+                            <!--<a href="{{input}}">-->
+                                <button class="button">Download</button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
         </p>
     </div>
-    <div id="analysis" style="overflow-x:auto;">
+    <div class="resultDiv" id="analysis" style="overflow-x:auto;">
         <h3>Analysis Details</h3>
         <p>
-            <table id="analysis-info">
+            <table class="tblresult" id="analysis-info">
                 <th>Galaxy workflow file</th>
                 <th>workflowid</th>
                 <th></th>
@@ -51,7 +60,7 @@
                                 <td id="workflowid">{{workflowid}}</td>
                                 <td>
                                     <span id="ga" style="display: none">{{storage}}/{{resultid}}/{{output}}</span>
-                                    <a href="{{storage}}/MYFAIR/{{resultid}}/{{output}}">
+                                    <a href="{{storage}}/{{resultid}}/{{output}}">
                                         <button class="button">Download</button>
                                     </a>
                                 </td>
@@ -65,7 +74,7 @@
                     </tr>
                 {% endif %}
             </table>
-            <table id="analysis-info">
+            <table class="tblresult" id="analysis-info">
                 <th>Workflow steps</th>
                 {% if workflow %}
                     {% for step in workflow %}
@@ -97,10 +106,10 @@
             </p>
         </div>
     </div>
-    <div id="output" style="overflow-x:auto;">
+    <div class="resultDiv" id="output" style="overflow-x:auto;">
         <h3>Output Files</h3>
         <p>
-        <table id="output-files">
+        <table class="tblresult" id="output-files">
             <th>Output File</th>
             <th></th>
             {% if outputs  %}
@@ -109,7 +118,7 @@
                         <tr>
                             <td>{{output}}</td>
                             <td>
-                                <a href="{{storage}}/MYFAIR/{{resultid}}/{{output}}">
+                                <a href="{{storage}}/{{resultid}}/{{output}}">
                                     <button class="button">Download</button>
                                 </a>
                             </td>
@@ -123,4 +132,13 @@
         </p>
     </div>
 </div>
+<!--<br />-->
+<!--<div id="footer">-->
+    <!--<div class="container">-->
+        <!--<br />-->
+        <!--Credits here-->
+        <!--<p class="muted credit">-->
+        <!--</p>-->
+    <!--</div>-->
+<!--</div>-->
 {% endblock %}
