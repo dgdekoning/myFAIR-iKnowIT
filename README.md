@@ -51,9 +51,7 @@ Everything is already pre-installed and can be used after following these steps 
 3. Download or clone myFAIR to your home directory. The latest version can be found [here](https://github.com/ErasmusMC-Bioinformatics/myFAIR).
 4. Overwrite the old myFAIR version with the new version.
 4. Open the terminal and start the Fuseki Server by typing: **.local/apache-jena-fuseki-2.4.1/fuseki start**
-5. Test if 127.0.0.1:8080 shows the myFAIR login page and that 127.0.0.1:8000 shows the Galaxy page. To see if the fuseki server is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
-6. Download the Gemini annotation files [here](https://bioinf-galaxian.erasmusmc.nl/owncloud/index.php/s/JuH6c97y5lAVSf2) and place the folder "gemini_annotation" in the home folder.
-After these steps you can run the myFAIR analysis.
+5. Test if 127.0.0.1:8080 shows the myFAIR login page and that https://usegalaxy.org shows the Galaxy page. To see if the fuseki server is running, go to 127.0.0.1:3030 and see if there is a green circle next to "Server status:".
 
 # <a name="run-the-myfair-analysis"></a> Run the myFAIR analysis
 In order to run the myFAIR analysis you need to follow these steps:
@@ -112,21 +110,21 @@ To split GEO files and send only specific samples to a new Galaxy history follow
 
 1. Download the GSE51403_expression_matrix_full.txt and  GSE51403_design_matrix_full_depth.txt file from https://bioinf-galaxian.erasmusmc.nl/galaxy/library/list#folders/F451c39ee14117b54
 2. Change the header called sample-name in sample_id.
-2. Place the data matrix and metadata in a study folder in B2DROP.
-3. Index the data matrix by clicking on the Index your data link. Then selecting the investigation folder where the study is located and click the "See studies" button. Select the study with the data matrix, then select the matrix file as the datafile and teh design file as the metadata file.
-4. Tag the data with the disease Unknown and the type of operation is RNA-seq read count analysis.
-5. click on the "Store Triples" button.
-6. On the homepage: enter the name of the study folder where the data matrix is located.
-7. Click on the "Search >>" button to start searching for all available samples in the data matrix.
-8. A list of samples will be shown in the results table. On the right side you will see a checkbox to select the file you want to use, on the left side are two checkboxes with the options A and B.
-9. Select a file you want to use.
-10. Select the samples you want to use in group A (control) and group B (test) by checking the checkboxes next to the sample name.
-11. Choose the file format tabular or auto.
-12. Enter a new history name or leave empty to automatically generate a new history name.
-13. Select the "Send datafile only" option when using the "differential_gene_expression workflow".
-14. Click the "send to galaxy" button.
-15. The new data matrix and metadata (if no workflow is selected) based on the selected samples will be send to Galaxy and will also be uploaded to B2DROP. If the workflow is used a tabular output and pdf file will also be stored in B2DROP.
-16. Visit the Galaxy page to view the uploaded and to start working with them.
+3. Place the data matrix and metadata in a study folder in B2DROP.
+4. Index the data matrix by clicking on the Index your data link. Then selecting the investigation folder where the study is located and click the "See studies" button. Select the study with the data matrix, then select the matrix file as the datafile and teh design file as the metadata file.
+5. Tag the data with the disease Unknown and the type of operation is RNA-seq read count analysis.
+6. click on the "Store Triples" button.
+7. On the homepage: enter the name of the study folder where the data matrix is located.
+8. Click on the "Search >>" button to start searching for all available samples in the data matrix.
+9. A list of samples will be shown in the results table. On the right side you will see a checkbox to select the file you want to use, on the left side are two checkboxes with the options A and B.
+10. Select a file you want to use.
+11. Select the samples you want to use in group A (control) and group B (test) by checking the checkboxes next to the sample name.
+12. Choose the file format tabular or auto.
+13. Enter a new history name or leave empty to automatically generate a new history name.
+14. Select the "Send datafile only" option when using the "differential_gene_expression workflow".
+15. Click the "send to galaxy" button.
+16. The new data matrix and metadata (if no workflow is selected) based on the selected samples will be send to Galaxy and will also be uploaded to B2DROP. If the workflow is used a tabular output and pdf file will also be stored in B2DROP.
+17. Visit the Galaxy page to view the uploaded and to start working with them.
 
 
 # <a name="see-results"></a> See results
