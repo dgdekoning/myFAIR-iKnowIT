@@ -1267,7 +1267,7 @@ def rerun_analysis(request):
         jsonwf = gi.workflows.export_workflow_json(newworkflowid)
         for i in range(len(jsonwf["steps"])):
             if jsonwf["steps"][str(i)]["name"] == "Input dataset":
-                label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
+                label = jsonwf["steps"][str(i)]["label"]
                 mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(newworkflowid, label=label)[0]
         for k, v in mydict.items():
             datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'), request.session.get('server'))[0][in_count]}
