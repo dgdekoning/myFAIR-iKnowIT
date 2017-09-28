@@ -759,8 +759,11 @@ def upload(request):
             jsonwf = gi.workflows.export_workflow_json(workflowid)
             for i in range(len(jsonwf["steps"])):
                 if jsonwf["steps"][str(i)]["name"] == "Input dataset":
-                    label = jsonwf["steps"][str(i)]["label"]
-                    mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
+                    try:
+                        label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
+                    except IndexError:
+                        label = jsonwf["steps"][str(i)]["label"]
+                    mydict["in%s" % (str(i + 1))] = gi.workflows.get_workflow_inputs(workflowid, label=label)[0]
             for k, v in mydict.items():
                 datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'),
                                                                  request.session.get('server'))[0][in_count]}
@@ -779,7 +782,7 @@ def upload(request):
                           groups, resultid, investigations, date)
             ga_store_results(request.session.get('username'), request.session.get('password'), workflowid,
                              request.session.get('storage'), resultid, groups, investigations)
-            commands.getoutput("rm "+ request.session.get('username') + "/input_test")
+            commands.getoutput("rm " + request.session.get('username') + "/input_test")
             return render_to_response('results.html', context={'workflowid': workflowid, 'inputs': inputs, 'pid': pid,
                                                                'server': request.session.get('server')})
         else:
@@ -789,7 +792,7 @@ def upload(request):
                     data_ids.append(history_data[c]['id'])
                 gi.histories.create_dataset_collection(history_id, make_collection(data_ids))
             ug_store_results(
-                request.session.get('api'), request.session.get('server'), workflowid, request.session.get('username'), 
+                request.session.get('api'), request.session.get('server'), workflowid, request.session.get('username'),
                 request.session.get('password'), request.session.get('storage'), groups, investigations, date)
             return HttpResponseRedirect("/")
 
@@ -1267,7 +1270,10 @@ def rerun_analysis(request):
         jsonwf = gi.workflows.export_workflow_json(newworkflowid)
         for i in range(len(jsonwf["steps"])):
             if jsonwf["steps"][str(i)]["name"] == "Input dataset":
-                label = jsonwf["steps"][str(i)]["label"]
+                try:
+                    label = jsonwf["steps"][str(i)]["inputs"][0]["name"]
+                except IndexError:
+                    label = jsonwf["steps"][str(i)]["label"]
                 mydict["in%s" % (str(i+1))] = gi.workflows.get_workflow_inputs(newworkflowid, label=label)[0]
         for k, v in mydict.items():
             datamap[v] = {'src': "hda", 'id': get_input_data(request.session.get('api'), request.session.get('server'))[0][in_count]}
