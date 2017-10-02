@@ -19,20 +19,19 @@ from django.conf.urls import url
 from django.conf.urls.static import static
 from django.conf import settings
 
-
 urlpatterns = [
-    url(r'^$', views.index),
-    url(r'^login', views.login),
-    url(r'^logout$', views.logout),
-    url(r'^upload', views.upload),
-    url(r'^triples', views.triples),
-    url(r'^store', views.store),
-    url(r'^samples', views.samples),
-    url(r'^modify', views.modify),
-    url(r'^delete', views.delete),
-    url(r'^results', views.show_results),
-    url(r'^rerun', views.rerun_analysis),
-    url(r'^history', views.store_history),
-    url(r'^investigation', views.investigation),
-    url(r'ontologies', views.onto),
+    url(r'^$', views.index, name="index"),
+    url(r'^login', views.login, name="login"),
+    url(r'^logout$', views.logout, name="logout"),
+    url(r'^upload', views.upload, name="upload"),
+    url(r'^triples', views.triples, name="triples"),
+    url(r'^store', views.store, name="store"),
+    url(r'^samples', views.samples, name="samples"),
+    url(r'^modify', views.modify, name="modify"),
+    url(r'^delete', views.delete, name="delete"),
+    url(r'^results', views.show_results, name="results"),
+    url(r'^rerun', views.rerun_analysis, name="rerun"),
+    url(r'^history', views.store_history, name="history"),
+    url(r'^investigation', views.investigation, name="investigation"),
+    url(r'ontologies', views.onto, name="ontologies"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

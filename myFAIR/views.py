@@ -185,9 +185,11 @@ def modify(request):
         else:
             err = "Please check accept to delete study or investigation"
             return render(request, "modify.html", context={'error': err})
-        return HttpResponseRedirect('/')
+        # return HttpResponseRedirect('/')
+        return render(request, "home.html")
     else:
-        return HttpResponseRedirect('/')
+        # return HttpResponseRedirect('/')
+        return render(request, "home.html")
 
 
 """
@@ -203,7 +205,8 @@ Select what files need to be stored in the triple store.
 @csrf_exempt
 def triples(request):
     if request.session.get('username') == "" or request.session.get('username') is None:
-        return HttpResponseRedirect('/')
+        return render(request, "login.html")
+        # return HttpResponseRedirect('/')
     else:
         folders = []
         studies = []
@@ -1054,7 +1057,7 @@ def logout(request):
     if request.session.get('username') is not None:
         commands.getoutput("rm -r " + request.session.get('username'))
         request.session.flush()
-    return HttpResponseRedirect("/")
+    return render(request, "login.html")
 
 
 """
@@ -1063,7 +1066,8 @@ This information will be used to store the files in Owncloud.
 """
 def get_output(api, server):
     if api is None:
-        return HttpResponseRedirect("/")
+        return render_to_response("login.html")
+        # return HttpResponseRedirect("/")
     else:
         gi = GalaxyInstance(url=server, key=api)
         historyid = get_history_id(api, server)
@@ -1115,7 +1119,8 @@ Create new triples.
 @csrf_exempt
 def store_history(request):
     if request.session.get('api') is None:
-        return HttpResponseRedirect("/")
+        return render_to_response("login.html")
+        # return HttpResponseRedirect("/")
     else:
         server = request.POST.get('server')
         api = request.POST.get('api')
@@ -1260,14 +1265,18 @@ def rerun_analysis(request):
     time.sleep(30)
     if workflowid != "0":
         gi.workflows.import_workflow_from_local_path(gafile.name)
-        workflows = gi.workflows.get_workflows()
+        workflows = gi.workflows.get_workflows(published=False)
+        jwf = json.loads(gacont)
         in_count = 0
         datamap = dict()
         mydict = {}
         for workflow in workflows:
             if "API" in workflow["name"]:
                 newworkflowid = workflow["id"]
-        jsonwf = gi.workflows.export_workflow_json(newworkflowid)
+                jsonwf = gi.workflows.export_workflow_json(newworkflowid)
+            elif jwf["name"] in workflow["name"]:
+                newworkflowid = workflow["id"]
+                jsonwf = gi.workflows.export_workflow_json(newworkflowid)
         for i in range(len(jsonwf["steps"])):
             if jsonwf["steps"][str(i)]["name"] == "Input dataset":
                 try:
@@ -1281,7 +1290,8 @@ def rerun_analysis(request):
         gi.workflows.invoke_workflow(newworkflowid, datamap, history_id=history_id)
         gi.workflows.delete_workflow(newworkflowid)
         commands.getoutput("rm " + gafile.name)
-    return HttpResponseRedirect("/")
+    # return HttpResponseRedirect("/")
+    return render(request, "home.html")
 
 
 """

@@ -21,7 +21,7 @@
     <p style="color:red">
         {{ error }}
     </p>
-    <form action="/" method="post">
+    <form action="{% url 'index' %}" method="post">
         <table id="table-login">
             <span style="color:red">*</span> = required fields
             <tr>

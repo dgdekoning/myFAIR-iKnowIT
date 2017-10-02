@@ -6,7 +6,7 @@
         document.forms['store'].submit()
     }
 </script>
-<form action="/store" method="post" id="store" name="store">
+<form action="{% url 'store' %}" method="post" id="store" name="store">
     <input type="hidden" name="inv" id="inv" value="{{ inv }}">
     <input type="hidden" name="study" id="study" value="{{ study }}">
     <input type="hidden" name="metadata" id="metadata" value="{{ metadata }}">
