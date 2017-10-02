@@ -189,7 +189,7 @@ def modify(request):
         return render(request, "home.html")
     else:
         # return HttpResponseRedirect('/')
-        return render(request, "home.html")
+        return render(request, "login.html")
 
 
 """
