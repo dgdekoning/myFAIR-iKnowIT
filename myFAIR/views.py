@@ -349,9 +349,9 @@ def investigation(request):
                 inv = request.POST.get('folder')
                 return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
             else:
-                return HttpResponseRedirect('/triples')
+                return render(request, "triples.html")
     else:
-        return HttpResponseRedirect('/')
+        return render(request, "home.html")
 
 
 """
@@ -451,7 +451,7 @@ def store(request):
                     cnt += 1
             commands.getoutput("rm " + username + "/metafile.csv")
             commands.getoutput("rm " + username + "/meta.txt")
-        return HttpResponseRedirect('/')
+        return render(request, "home.html")
 
 
 """
@@ -743,7 +743,7 @@ def upload(request):
                                  workflowid, files, new_hist)
     inputs = {}
     if len(filter(None, files)) <= 0:
-        return HttpResponseRedirect("/")
+        return render(request, "home.html")
     else:
         if onlydata == "true":
             make_data_files(gi, files, request.session.get('username'), request.session.get('password'),
@@ -796,7 +796,7 @@ def upload(request):
             ug_store_results(
                 request.session.get('api'), request.session.get('server'), workflowid, request.session.get('username'),
                 request.session.get('password'), request.session.get('storage'), groups, investigations, date)
-            return HttpResponseRedirect("/")
+            return render(request, "home.html")
 
 
 """
@@ -1046,7 +1046,7 @@ def show_results(request):
             return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow,
                             'storage': storage, 'resultid': resid, 'workflowid': wid})
         else:
-            return HttpResponseRedirect('/')
+            return render(request, "home.html")
 
 
 """
