@@ -33,7 +33,7 @@
     <br />
     <button id="index_buttons" onclick="document.investigation.submit()">See Studies</button>
     <hr />
-    <form action="{url 'triples' }" method="post" name="triples">
+    <form action="{% url 'triples' %}" method="post" name="triples">
         <input type="hidden" name="inv" id="inv" value="{{inv}}">
         <input type="hidden" name="sstudy" id="sstudy" value="{{sstudy}}">
         <p>
