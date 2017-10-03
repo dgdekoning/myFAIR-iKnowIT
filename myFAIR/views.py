@@ -13,7 +13,6 @@ from bioblend.galaxy.client import ConnectionError
 from django.shortcuts import render_to_response, render, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 
-
 """
 Login page with session storage.
 """
@@ -55,7 +54,7 @@ def login(request):
         else:
             request.session.set_expiry(43200)
         return render_to_response('home.html', context={'error': err})
-    return render(request, 'login.html')
+    return render_to_response('login.html')
 
 
 """

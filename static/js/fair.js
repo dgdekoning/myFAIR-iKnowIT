@@ -381,16 +381,16 @@ function getoutput() {
         url: "results",
         data: { 'group': jsonGroup, 'resultid': jsonResultid, 'investigations': jsonInvestigation},
         success: function (data) {
-            window.location.href = document.getElementById('results_link').innerText;
+            window.location.href = "results";
         },
         error: function (data) {
-            window.location.href = document.getElementById('home_link').innerText;
+            window.location.reload();
         }
     });
 }
 // Refresh the page
 function refresh () {
-    window.location.href = document.getElementById('home_link').innerText;
+    window.location.reload();
 }
 // Loop through the results_table and get the pid (first column)
 function checkData(g) {

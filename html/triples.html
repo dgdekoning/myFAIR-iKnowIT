@@ -16,7 +16,7 @@
 <div class="container" style="margin-top:100px"></div>
 <div id="modify">
     <h3>Index your data</h3>
-    <form action="/investigation/" method="post" name="investigation">
+    <form action="{% url 'investigation' %}" method="post" name="investigation">
         <p>
             Select an investigation by clicking on the dropdown menu.<br />
             Click the See Studies button to view all studies within that investigation.<br />
@@ -33,7 +33,7 @@
     <br />
     <button id="index_buttons" onclick="document.investigation.submit()">See Studies</button>
     <hr />
-    <form action="/triples/" method="post" name="triples">
+    <form action="{url 'triples' }" method="post" name="triples">
         <input type="hidden" name="inv" id="inv" value="{{inv}}">
         <input type="hidden" name="sstudy" id="sstudy" value="{{sstudy}}">
         <p>
@@ -58,7 +58,7 @@
     <br />
     <button id="index_buttons" onclick="document.triples.submit()">See Files</button>
     <hr />
-    <form action="/triples/" method="post" name="files">
+    <form action="{% url 'triples' %}" method="post" name="files">
         <input type="hidden" name="selected_folder" value="{{ inv }}">
         <input type="hidden" name="selected_study" value="{{ sstudy }}">
         <input type="hidden" id="datalist" name="datalist" value="">
@@ -90,7 +90,7 @@
                 </tr>
                 <tr>
                     <td>Tag metadata:</td>
-                    <form action="/onto/"  method="post" name="searchonto">
+                    <form action="{% url 'ontologies' %}"  method="post" name="searchonto">
                     <td><input type="text" id="disgenet-tag" name="disgenet-tag" style="width:auto;" placeholder="Disease"></td>
                     <td>
                         <select id="edam-tag" name="edam-tag" class="select-folder">
