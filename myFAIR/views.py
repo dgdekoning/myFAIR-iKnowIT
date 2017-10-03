@@ -12,6 +12,7 @@ from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.client import ConnectionError
 from django.shortcuts import render_to_response, render, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
+from django.core.urlresolvers import reverse
 
 """
 Login page with session storage.
@@ -54,7 +55,7 @@ def login(request):
         else:
             request.session.set_expiry(43200)
         return render_to_response('home.html', context={'error': err})
-    return render_to_response('login.html')
+    return render(request, 'login.html')
 
 
 """
@@ -184,12 +185,11 @@ def modify(request):
         else:
             err = "Please check accept to delete study or investigation"
             return render(request, "modify.html", context={'error': err})
-        # return HttpResponseRedirect('/')
-        return render(request, "home.html")
+        return HttpResponseRedirect(reverse('index'))
     else:
         # return HttpResponseRedirect('/')
-        return render(request, "login.html")
-
+        # return render(request, "login.html")
+    	return HttpResponseRedirect(reverse('index'))
 
 """
 Call the modify/delete page.
@@ -205,7 +205,7 @@ Select what files need to be stored in the triple store.
 def triples(request):
     if request.session.get('username') == "" or request.session.get('username') is None:
         return render(request, "login.html")
-        # return HttpResponseRedirect('/')
+        return HttpResponseRedirect(reverse('index'))
     else:
         folders = []
         studies = []
@@ -349,9 +349,9 @@ def investigation(request):
                 inv = request.POST.get('folder')
                 return render(request, 'triples.html', context={'folders': folders, 'studies': studies, 'inv': inv})
             else:
-                return render(request, "triples.html")
+                return HttpResponseRedirect(reverse('triples'))
     else:
-        return render(request, "home.html")
+        return HttpResponseRedirect(reverse('index'))
 
 
 """
@@ -451,7 +451,7 @@ def store(request):
                     cnt += 1
             commands.getoutput("rm " + username + "/metafile.csv")
             commands.getoutput("rm " + username + "/meta.txt")
-        return render(request, "home.html")
+        return HttpResponseRedirect(reverse('index'))
 
 
 """
@@ -743,7 +743,7 @@ def upload(request):
                                  workflowid, files, new_hist)
     inputs = {}
     if len(filter(None, files)) <= 0:
-        return render(request, "home.html")
+        return HttpResponseRedirect(reverse("index"))
     else:
         if onlydata == "true":
             make_data_files(gi, files, request.session.get('username'), request.session.get('password'),
@@ -796,7 +796,7 @@ def upload(request):
             ug_store_results(
                 request.session.get('api'), request.session.get('server'), workflowid, request.session.get('username'),
                 request.session.get('password'), request.session.get('storage'), groups, investigations, date)
-            return render(request, "home.html")
+            return HttpResponseRedirect(reverse("index"))
 
 
 """
@@ -1046,7 +1046,7 @@ def show_results(request):
             return render(request, 'results.html', context={'inputs': inputs, 'outputs': out, 'workflow': workflow,
                             'storage': storage, 'resultid': resid, 'workflowid': wid})
         else:
-            return render(request, "home.html")
+            return HttpResponseRedirect(reverse('index'))
 
 
 """
@@ -1056,7 +1056,7 @@ def logout(request):
     if request.session.get('username') is not None:
         commands.getoutput("rm -r " + request.session.get('username'))
         request.session.flush()
-    return render(request, "login.html")
+    return HttpResponseRedirect(reverse('index'))
 
 
 """
@@ -1065,8 +1065,8 @@ This information will be used to store the files in Owncloud.
 """
 def get_output(api, server):
     if api is None:
-        return render_to_response("login.html")
-        # return HttpResponseRedirect("/")
+        # return render_to_response("login.html")
+        return HttpResponseRedirect(reverse("index"))
     else:
         gi = GalaxyInstance(url=server, key=api)
         historyid = get_history_id(api, server)
@@ -1118,8 +1118,8 @@ Create new triples.
 @csrf_exempt
 def store_history(request):
     if request.session.get('api') is None:
-        return render_to_response("login.html")
-        # return HttpResponseRedirect("/")
+        # return render_to_response("login.html")
+        return HttpResponseRedirect(reverse("index"))
     else:
         server = request.POST.get('server')
         api = request.POST.get('api')
@@ -1289,8 +1289,8 @@ def rerun_analysis(request):
         gi.workflows.invoke_workflow(newworkflowid, datamap, history_id=history_id)
         gi.workflows.delete_workflow(newworkflowid)
         commands.getoutput("rm " + gafile.name)
-    # return HttpResponseRedirect("/")
-    return render(request, "home.html")
+    return HttpResponseRedirect(reverse("index"))
+    # return render(request, "home.html")
 
 
 """
